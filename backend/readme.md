@@ -81,7 +81,7 @@ create table if not exists timeshows(
   id uuid primary key,
   mid uuid not null,
   time text not null unique,
-  foreign key (mid) references movies(id) on delete cascade
+  foreign key (mid) references movies(id) on delete cascade,
   unique (mid, time)
 );
 
