@@ -1,0 +1,148 @@
+-- Customers table hold auth id in and deatils about customer 
+create table if not exists customers(
+  id uuid primary key,
+  uid uuid not null unique,
+  name text not null,
+  foreign key (uid) references auth.users(id)
+); 
+
+
+-- Movies table hold movie details
+create table if not exists movies(
+  id uuid primary key,
+  title text not null,
+  description text not null,
+  price float not null,
+  image text not null unique,
+  seats_number int default 47
+);
+
+
+-- time show table contain show times for each movie
+create table if not exists timeshows(
+  id uuid primary key,
+  mid uuid not null,
+  time text not null unique,
+  foreign key (mid) references movies(id) on delete cascade,
+  unique (mid, time)
+);
+
+-- reservation table hold details about each user reservation seat to which movie and time
+create table if not exists reservations(
+  id uuid primary key,
+  cid uuid not null,
+  mid uuid not null,
+  tid uuid not null,
+  seat text not null,
+  foreign key (cid) references customers(id) on delete cascade,
+  foreign key (mid) references movies(id) on delete cascade,
+  foreign key (tid) references timeshows(id) on delete cascade,
+  unique (
+    mid,
+    tid,
+    seat
+  )
+);
+
+
+-- ticket table hold details about checked out reservations
+
+create table if not exists tickets(
+  id uuid primary key,
+  total_price numeric  not null check (total_price > 0),
+  seats text[] not null,
+  cid uuid not null,
+  mid uuid not null,
+  tid uuid not null,
+  foreign key (cid) references customers(id) on delete cascade,
+  foreign key (mid) references movies(id) on delete cascade,
+  foreign key (tid) references timeshows(id) on delete cascade
+);
+
+
+
+-- Config Realtime for tables
+alter publication supabase_realtime add table
+  customers,
+  movies,
+  timeshows,
+  reservations,
+  tickets;
+
+
+-- ADD RLS Policy 
+
+-- Customers RLS
+
+alter table customers enable row level security;
+
+create policy "Users can see their own customer row"
+on customers
+for select
+using (uid = auth.uid());
+
+
+-- Movies RLS
+
+alter table movies enable row level security;
+create policy "Public can view movies" on movies
+for select using (true);
+
+-- Timeshows RLS
+
+alter table timeshows enable row level security;
+create policy "Public can view timeshows" on timeshows
+for select using (true);
+
+
+-- Reservation RLS 
+
+alter table reservations enable row level security;
+
+-- Everyone can read all reservations (needed to show booked seats)
+create policy "Anyone can read reservations"
+on reservations
+for select using (true);
+
+-- Only owners can insert reservations (book seat)
+create policy "Customer can book their own reservation"
+on reservations
+for insert
+with check (
+  cid in (
+    select id from customers where uid = auth.uid()
+  )
+);
+
+-- Ticket RLS
+alter table tickets enable row level security;
+
+create policy "Customer can read own tickets"
+on tickets
+for select
+using (
+  cid in (
+    select id from customers where uid = auth.uid()
+  )
+);
+
+create policy "Customer can insert own tickets"
+on tickets
+for insert
+with check (
+  cid in (
+    select id from customers where uid = auth.uid()
+  )
+);
+
+
+
+-- Drop all tables 
+
+drop table tickets;
+drop table reservations;
+drop table timeshows;
+drop table customers;
+drop table movies;
+
+
