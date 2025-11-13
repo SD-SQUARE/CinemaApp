@@ -193,6 +193,51 @@ with check (
   )
 );
 
+
+-- statistcs Function
+
+create or replace function get_tickets_summary()
+returns jsonb
+language plpgsql
+as $$
+declare
+  v_total_tickets int;
+  v_total_price numeric;
+  v_ticket_list jsonb;
+begin
+  -- 1. Total number of tickets
+  select count(*) into v_total_tickets from tickets;
+
+  -- 2. Total price sum
+  select coalesce(sum(total_price), 0) into v_total_price from tickets;
+
+  -- 3. Ticket list with details
+  select jsonb_agg(
+    jsonb_build_object(
+      'ticket_id', t.id,
+      'customer_name', c.name,
+      'movie_name', m.title,
+      'show_time', ts.time,
+      'price', m.price,
+      'total_price', t.total_price
+    )
+  )
+  into v_ticket_list
+  from tickets t
+  join customers c on t.cid = c.id
+  join movies m on t.mid = m.id
+  join timeshows ts on t.tid = ts.id;
+
+  -- 4. Return final JSON object
+  return jsonb_build_object(
+    'total_tickets', v_total_tickets,
+    'total_price', v_total_price,
+    'tickets', coalesce(v_ticket_list, '[]'::jsonb)
+  );
+end;
+$$;
+
+
 ```
 
 ## To Reset Database
