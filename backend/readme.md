@@ -49,7 +49,7 @@ npx supabase stop
 
 1. press on connect `found in navbar`
 2. go to app framework tab and copy anon key from .env
-   `<img src="./annon_key.png" alt="Anon key">`
+   <img src="./annon_key.png" alt="Anon key">
 
 ## Run all sql statments to build Cinema DB
 
