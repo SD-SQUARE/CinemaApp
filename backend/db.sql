@@ -10,7 +10,7 @@ create table if not exists customers(
 -- Movies table hold movie details
 create table if not exists movies(
   id uuid primary key,
-  title text not null,
+  title text not null unique,
   description text not null,
   price float not null,
   image text not null unique,
@@ -22,7 +22,7 @@ create table if not exists movies(
 create table if not exists timeshows(
   id uuid primary key,
   mid uuid not null,
-  time text not null unique,
+  time timestamptz not null unique,
   foreign key (mid) references movies(id) on delete cascade,
   unique (mid, time)
 );
@@ -179,6 +179,82 @@ begin
 end;
 $$;
 
+
+-- delete ticket function
+
+create or replace function cancel_ticket(
+  p_ticket_id uuid
+)
+returns jsonb
+language plpgsql
+security definer
+as $$
+declare
+  v_cid uuid;
+  v_tid uuid;
+  v_showtime timestamptz;
+begin
+  -- Fetch ticket info
+  select cid, tid
+  into v_cid, v_tid
+  from tickets
+  where id = p_ticket_id;
+
+  if v_cid is null then
+    return jsonb_build_object('ok', false, 'reason', 'ticket_not_found');
+  end if;
+
+  -- Validate ticket owner
+  if v_cid not in (select id from customers where uid = auth.uid()) then
+    return jsonb_build_object('ok', false, 'reason', 'not_owner');
+  end if;
+
+  -- Fetch showtime datetime
+  select time into v_showtime
+  from timeshows
+  where id = v_tid;
+
+  -- Check expiration
+  if now() >= v_showtime then
+    return jsonb_build_object('ok', false, 'reason', 'expired');
+  end if;
+
+  -- Delete reservations linked to this ticket
+  delete from reservations
+  where cid = v_cid
+    and mid = (select mid from tickets where id = p_ticket_id)
+    and tid = v_tid
+    and seat = any (select seats from tickets where id = p_ticket_id);
+
+  -- Delete the ticket
+  delete from tickets
+  where id = p_ticket_id;
+
+  return jsonb_build_object('ok', true, 'ticket_id', p_ticket_id);
+end;
+$$;
+
+
+-- delete movies function
+
+create or replace function delete_movie(
+  p_mid uuid
+)
+returns jsonb
+language plpgsql
+security definer
+as $$
+begin
+  -- Delete the movie, CASCADE will remove timeshows + reservations + tickets
+  delete from movies where id = p_mid;
+
+  if not found then
+    return jsonb_build_object('ok', false, 'reason', 'movie_not_found');
+  end if;
+
+  return jsonb_build_object('ok', true, 'movie_id', p_mid);
+end;
+$$;
 
 
 -- Drop all tables 
