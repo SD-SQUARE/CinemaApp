@@ -1,6 +1,6 @@
 -- Customers table hold auth id in and deatils about customer 
 create table if not exists customers(
-  id uuid primary key,
+  id uuid primary key default gen_random_uuid(),
   uid uuid not null unique,
   name text not null,
   foreign key (uid) references auth.users(id)
@@ -134,6 +134,13 @@ with check (
     select id from customers where uid = auth.uid()
   )
 );
+
+-- Allow authenticated users to insert their own row
+create policy "Users can insert their own customer row"
+on customers
+for insert
+with check (uid = auth.uid());
+
 
 
 -- statistcs Function

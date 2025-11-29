@@ -1,14 +1,15 @@
 
-import 'dart:math';
-
+import 'package:customerapp/screens/login/Login.screen.dart';
+import 'package:customerapp/screens/movieList/MovieList.screen.dart';
+import 'package:customerapp/screens/signup/Signup.screen.dart';
+import 'package:customerapp/screens/splash/splash.screen.dart';
 import 'package:flutter/material.dart';
 import 'package:customerapp/services/notification_service.dart';
-import 'package:customerapp/services/supabase_client.dart';
 import 'package:customerapp/utils/permission_handler.dart';
 
-void main() async{
-
+void main() async {
   WidgetsFlutterBinding.ensureInitialized();
+
   await requestPermissions();
   await NotificationService.init();
 
@@ -22,23 +23,15 @@ class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      title: 'CustomerApp',
+      title: 'Customer App',
       debugShowCheckedModeBanner: false,
-      home: Scaffold(
-        appBar: AppBar(
-          title: const Text('CustomerApp'),
-        ),
-        body: Center(
-          child: InkWell(
-             onTap: ()async{
-               // Test notification and supabase
-               print("notification sent");
-               var data = await SupabaseService.client.from("test").select("message");
-               NotificationService.showNotification(id: Random().nextInt(99), title: "Hello", body: data.toList()[0].toString());
-             },
-              child: const Text('Flutter Home Page')),
-        ),
-      )
+      initialRoute: SplashScreen.routeName,
+      routes: {
+        SplashScreen.routeName: (context) => const SplashScreen(),
+        LoginScreen.routeName: (context) => const LoginScreen(),
+        SignupScreen.routeName: (context) => const SignupScreen(),
+        MovieListScreen.routeName: (context) => const MovieListScreen(),
+      },
     );
   }
 }
