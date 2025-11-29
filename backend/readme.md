@@ -6,10 +6,10 @@
 > Docker Must Be Up To Allow Supabase pull images
 
 > [!Note]
-> **Supabase** quick tutorial `<a href="https://youtube.com/playlist?list=PL5S4mPUpp4OtkMf5LNDLXdTcAp1niHjoL&si=Im3cuh6WJlE9OZny">`Video`</a>`
+> **Supabase** quick tutorial <a href="https://youtube.com/playlist?list=PL5S4mPUpp4OtkMf5LNDLXdTcAp1niHjoL&si=Im3cuh6WJlE9OZny">`Video`</a>
 
 > [!Note]
-> **Flutter** Workshop `<a href="https://youtube.com/playlist?list=PLA46heUvBlPEPr4Zn25W2PRzXi4kdPh-2&si=Lxr33KBYjrFnCPbF">`Video`</a>`
+> **Flutter** Workshop <a href="https://youtube.com/playlist?list=PLA46heUvBlPEPr4Zn25W2PRzXi4kdPh-2&si=Lxr33KBYjrFnCPbF">`Video`</a>
 
 ## How to run
 
@@ -49,7 +49,7 @@ npx supabase stop
 
 1. press on connect `found in navbar`
 2. go to app framework tab and copy anon key from .env
-   `<img src="./annon_key.png" alt="Anon key">`
+   <img src="./annon_key.png" alt="Anon key">
 
 ## Run all sql statments to build Cinema DB
 
