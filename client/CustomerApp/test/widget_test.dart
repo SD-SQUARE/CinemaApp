@@ -5,26 +5,31 @@
 // gestures. You can also use WidgetTester to find child widgets in the widget
 // tree, read text, and verify that the values of widget properties are correct.
 
+import 'package:customerapp/cubits/SignUp/SignUpCubit.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 import 'package:customerapp/main.dart';
+import 'package:supabase/supabase.dart';
 
 void main() {
-  testWidgets('Counter increments smoke test', (WidgetTester tester) async {
-    // Build our app and trigger a frame.
-    await tester.pumpWidget(const MyApp());
+  test('Should fail on invalid sign up credentials', () {
+    final cubit = SignUpCubit();
 
-    // Verify that our counter starts at 0.
-    expect(find.text('0'), findsOneWidget);
-    expect(find.text('1'), findsNothing);
+    cubit.updateName('John Doe');
+    expect(cubit.state.signupUser!.name, 'John Doe');
 
-    // Tap the '+' icon and trigger a frame.
-    await tester.tap(find.byIcon(Icons.add));
-    await tester.pump();
+    cubit.updateEmail('johndoe@example.com');
+    expect(cubit.state.signupUser!.email, 'johndoe@example.com');
 
-    // Verify that our counter has incremented.
-    expect(find.text('0'), findsNothing);
-    expect(find.text('1'), findsOneWidget);
+    cubit.updatePassword('password123');
+    expect(cubit.state.signupUser!.password, 'password123');
+
+    cubit.updateConfirmPassword('password123');
+    expect(cubit.state.signupUser!.confirmPassword, 'password123');
+
+    expect(cubit.isSignupUserComplete(), true);
+
   });
+ 
 }
