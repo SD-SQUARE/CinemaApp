@@ -1,0 +1,31 @@
+import 'package:flutter/material.dart';
+import 'package:vendorapp/constants/AppColors.dart';
+import 'package:vendorapp/screens/navigationBar/navigationBar.dart';
+
+class MainScreen extends StatelessWidget {
+  static const routeName = '/main-screen';
+
+  const MainScreen({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      body: Stack(
+        children: [
+          const NavigationBarSection(),
+          Positioned(
+            right: 20.0,
+            bottom: 120.0,
+            child: FloatingActionButton(
+              onPressed: () {
+                print('Add movie button clicked');
+              },
+              child: const Icon(Icons.add),
+              backgroundColor: AppColors.primaryColor,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}

@@ -1,0 +1,25 @@
+class Movie {
+  final String title;
+  final String description;
+  final double price;
+  final int seatsNumber;
+  final String image;
+
+  Movie({
+    required this.title,
+    required this.description,
+    required this.price,
+    required this.seatsNumber,
+    required this.image,
+  });
+
+  factory Movie.fromMap(Map<String, dynamic> map) {
+    return Movie(
+      title: map['title'] ?? '',
+      description: map['description'] ?? '',
+      price: map['price'] ?? 0.0,
+      seatsNumber: map['seats_number'] ?? 0,
+      image: map['image'] ?? '',
+    );
+  }
+}
