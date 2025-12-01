@@ -29,7 +29,7 @@ class _NavigationBarStateSection extends State<NavigationBarSection> {
       children: [
         Expanded(child: _pages[_selectedIndex]),
         BottomNavigationBar(
-          unselectedItemColor: AppColors.secondaryColor,
+          unselectedItemColor: Colors.grey,
           selectedItemColor: AppColors.textColor,
           backgroundColor: AppColors.primaryColor,
           currentIndex: _selectedIndex,

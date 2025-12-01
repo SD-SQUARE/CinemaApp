@@ -1,13 +1,14 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:vendorapp/cubits/addMovie/add_movie_cubit.dart';
 import 'package:vendorapp/cubits/movieList/movieListCubit.dart';
 import 'package:vendorapp/screens/Home/main.screen.dart';
+import 'package:vendorapp/screens/addMovie/AddMovie.dart';
 import 'package:vendorapp/screens/splash/splash.screen.dart';
 import 'package:vendorapp/services/notification_service.dart';
 import 'package:vendorapp/services/seeding/movie_seeding.dart';
 import 'package:vendorapp/services/supabase_client.dart';
 import 'package:vendorapp/utils/permission_handler.dart';
-import 'package:device_preview/device_preview.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -34,7 +35,10 @@ class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MultiBlocProvider(
-      providers: [BlocProvider(create: (context) => Movielistcubit())],
+      providers: [
+        BlocProvider(create: (context) => Movielistcubit()),
+        BlocProvider(create: (context) => AddMovieCubit()),
+      ],
       child: MaterialApp(
         title: 'Customer App',
         debugShowCheckedModeBanner:
@@ -51,6 +55,10 @@ class MyApp extends StatelessWidget {
             case MainScreen.routeName:
               page = MainScreen();
               break;
+            case AddMoviePage.routeName:
+              page = AddMoviePage();
+              break;
+
             default:
               page = const SplashScreen(); // fallback
           }
