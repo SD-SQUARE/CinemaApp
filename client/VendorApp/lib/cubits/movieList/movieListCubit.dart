@@ -25,13 +25,14 @@ class Movielistcubit extends Cubit<Movieliststate> {
       }
 
       final List<dynamic> response = await query;
-      print("Supabase returned ${response.length} rows");
 
       final movieList = response
           .map<Movie>(
             (movieData) => Movie.fromMap(movieData as Map<String, dynamic>),
           )
           .toList();
+
+      print(response);
 
       emit(
         Movieliststate(

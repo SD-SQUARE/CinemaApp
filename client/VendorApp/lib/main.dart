@@ -4,6 +4,8 @@ import 'package:vendorapp/cubits/addMovie/add_movie_cubit.dart';
 import 'package:vendorapp/cubits/movieList/movieListCubit.dart';
 import 'package:vendorapp/screens/Home/main.screen.dart';
 import 'package:vendorapp/screens/addMovie/AddMovie.dart';
+import 'package:vendorapp/screens/movieDetails/MovieDetailsPage.dart';
+import 'package:vendorapp/cubits/movieDetails/movieDetailsCubit.dart';
 import 'package:vendorapp/screens/splash/splash.screen.dart';
 import 'package:vendorapp/services/notification_service.dart';
 import 'package:vendorapp/services/seeding/movie_seeding.dart';
@@ -38,6 +40,7 @@ class MyApp extends StatelessWidget {
       providers: [
         BlocProvider(create: (context) => Movielistcubit()),
         BlocProvider(create: (context) => AddMovieCubit()),
+        BlocProvider(create: (context) => MovieDetailsCubit()),
       ],
       child: MaterialApp(
         title: 'Customer App',
@@ -57,6 +60,10 @@ class MyApp extends StatelessWidget {
               break;
             case AddMoviePage.routeName:
               page = AddMoviePage();
+              break;
+            case MovieDetailsPage.routeName:
+              final movieId = settings.arguments as String;
+              page = MovieDetailsPage(movieId: movieId);
               break;
 
             default:

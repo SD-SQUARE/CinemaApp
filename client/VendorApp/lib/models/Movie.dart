@@ -1,4 +1,5 @@
 class Movie {
+  final String id;
   final String title;
   final String description;
   final double price;
@@ -11,6 +12,7 @@ class Movie {
     required this.price,
     required this.seatsNumber,
     required this.image,
+    required this.id,
   });
 
   factory Movie.fromMap(Map<String, dynamic> map) {
@@ -20,6 +22,7 @@ class Movie {
       price: map['price'] ?? 0.0,
       seatsNumber: map['seats_number'] ?? 0,
       image: map['image'] ?? '',
+      id: map['id'],
     );
   }
 }
