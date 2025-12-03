@@ -19,7 +19,7 @@ class Movie {
     return Movie(
       title: map['title'] ?? '',
       description: map['description'] ?? '',
-      price: map['price'] ?? 0.0,
+      price: (map['price'] as num).toDouble(),
       seatsNumber: map['seats_number'] ?? 0,
       image: map['image'] ?? '',
       id: map['id'],

@@ -7,7 +7,7 @@ class TimeShow {
   factory TimeShow.fromMap(Map<String, dynamic> map) {
     return TimeShow(
       id: map['id'] as String,
-      time: DateTime.parse(map['time'] as String),
+      time: DateTime.parse(map['time']).toLocal(),
     );
   }
 }

@@ -14,4 +14,16 @@ class Movieliststate {
   factory Movieliststate.initial() {
     return Movieliststate(movies: [], isLoading: false, searchName: null);
   }
+
+  Movieliststate copyWith({
+    List<Movie>? movies,
+    bool? isLoading,
+    String? searchName,
+  }) {
+    return Movieliststate(
+      movies: movies ?? this.movies,
+      isLoading: isLoading ?? this.isLoading,
+      searchName: searchName ?? this.searchName,
+    );
+  }
 }

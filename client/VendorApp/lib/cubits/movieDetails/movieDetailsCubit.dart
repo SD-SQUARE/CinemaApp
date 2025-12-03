@@ -8,7 +8,6 @@ import 'package:vendorapp/services/supabase_client.dart';
 class MovieDetailsCubit extends Cubit<MovieDetailsState> {
   MovieDetailsCubit() : super(MovieDetailsState.initial());
 
-  String? _currentMovieId;
   RealtimeChannel? _reservationChannel; // 👈 keep channel reference
 
   @override
@@ -17,12 +16,7 @@ class MovieDetailsCubit extends Cubit<MovieDetailsState> {
     return super.close();
   }
 
-  Future<void> loadMovie(String movieId, {bool force = false}) async {
-    if (!force && _currentMovieId == movieId && state.movie != null) {
-      return;
-    }
-    _currentMovieId = movieId;
-
+  Future<void> loadMovie(String movieId) async {
     try {
       emit(state.copyWith(isLoading: true, errorMessage: null));
 

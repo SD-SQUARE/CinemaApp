@@ -10,13 +10,8 @@ class Movielistcubit extends Cubit<Movieliststate> {
     final searchTerm = search ?? state.searchName;
 
     try {
-      emit(
-        Movieliststate(
-          movies: state.movies,
-          isLoading: true,
-          searchName: searchTerm,
-        ),
-      );
+      // set loading true, keep current movies
+      emit(state.copyWith(isLoading: true, searchName: searchTerm));
 
       var query = SupabaseService.client.from('movies').select();
 
@@ -24,7 +19,10 @@ class Movielistcubit extends Cubit<Movieliststate> {
         query = query.ilike('title', '%$searchTerm%');
       }
 
-      final List<dynamic> response = await query;
+      final List<dynamic> response = await query.order(
+        'createdAt',
+        ascending: false,
+      );
 
       final movieList = response
           .map<Movie>(
@@ -32,31 +30,31 @@ class Movielistcubit extends Cubit<Movieliststate> {
           )
           .toList();
 
-      print(response);
-
-      emit(
-        Movieliststate(
-          movies: movieList,
-          isLoading: false,
-          searchName: searchTerm,
-        ),
-      );
+      emit(state.copyWith(movies: movieList, isLoading: false));
     } catch (e, st) {
       print("Error fetching movies: $e");
       print(st);
-      emit(
-        Movieliststate(movies: [], isLoading: false, searchName: searchTerm),
-      );
+      emit(state.copyWith(movies: [], isLoading: false));
     }
   }
 
   void setSearchText(String value) {
-    emit(
-      Movieliststate(
-        movies: state.movies,
-        isLoading: state.isLoading,
-        searchName: value,
-      ),
-    );
+    emit(state.copyWith(searchName: value));
+  }
+
+  Future<void> deleteMovie(String movieId) async {
+    try {
+      emit(state.copyWith(isLoading: true));
+
+      await SupabaseService.client.from('movies').delete().eq('id', movieId);
+
+      // Refresh list after deletion (keeps current search filter)
+      await fetchMovies(search: state.searchName);
+    } catch (e, st) {
+      print("Error deleting movie: $e");
+      print(st);
+
+      emit(state.copyWith(isLoading: false));
+    }
   }
 }

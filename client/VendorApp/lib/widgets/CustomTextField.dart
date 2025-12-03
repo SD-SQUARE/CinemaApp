@@ -5,6 +5,10 @@ class CustomTextField extends StatelessWidget {
   final String label;
   final Function(String value)? onChanged;
   final String? Function(String?)? validator;
+
+  /// New: We support initial value
+  final String? initialValue;
+
   final TextEditingController? controller;
   final TextInputType keyboardType;
   final bool obscureText;
@@ -15,6 +19,7 @@ class CustomTextField extends StatelessWidget {
     required this.label,
     this.onChanged,
     this.validator,
+    this.initialValue, // 👈 added
     this.controller,
     this.keyboardType = TextInputType.text,
     this.obscureText = false,
@@ -25,7 +30,11 @@ class CustomTextField extends StatelessWidget {
   Widget build(BuildContext context) {
     return TextFormField(
       controller: controller,
-      style: const TextStyle(color: Colors.white),
+      initialValue: controller == null ? initialValue : null,
+
+      // 👆 IMPORTANT:
+      // Flutter forbids using initialValue when controller != null.
+      style: const TextStyle(color: Colors.black),
       keyboardType: keyboardType,
       obscureText: obscureText,
       maxLines: maxLines,

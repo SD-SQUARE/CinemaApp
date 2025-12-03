@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:vendorapp/cubits/addMovie/add_movie_cubit.dart';
+import 'package:vendorapp/cubits/editMovie/edit_movie_cubit.dart';
 import 'package:vendorapp/cubits/movieList/movieListCubit.dart';
 import 'package:vendorapp/screens/Home/main.screen.dart';
 import 'package:vendorapp/screens/addMovie/AddMovie.dart';
@@ -39,7 +40,6 @@ class MyApp extends StatelessWidget {
     return MultiBlocProvider(
       providers: [
         BlocProvider(create: (context) => Movielistcubit()),
-        BlocProvider(create: (context) => AddMovieCubit()),
         BlocProvider(create: (context) => MovieDetailsCubit()),
       ],
       child: MaterialApp(

@@ -20,7 +20,6 @@ class _MovieDetailsPageState extends State<MovieDetailsPage> {
   @override
   void initState() {
     super.initState();
-    // ✅ Only called once when page is created
     context.read<MovieDetailsCubit>().loadMovie(widget.movieId);
   }
 

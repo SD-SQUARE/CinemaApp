@@ -1,6 +1,4 @@
-// lib/cubits/add_movie/add_movie_cubit.dart
 import 'dart:io';
-
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:vendorapp/cubits/addMovie/add_movie_state.dart';
 import 'package:vendorapp/services/supabase_client.dart';
@@ -8,8 +6,6 @@ import 'package:vendorapp/services/ImagesServices.dart';
 
 class AddMovieCubit extends Cubit<AddMovieState> {
   AddMovieCubit() : super(AddMovieState.initial());
-
-  // Update fields from UI
 
   void updateTitle(String value) {
     emit(state.copyWith(title: value, errorMessage: null, isSuccess: false));

@@ -3,8 +3,10 @@ import 'dart:async'; // 👈 IMPORTANT for Timer
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:vendorapp/constants/AppColors.dart';
+import 'package:vendorapp/cubits/addMovie/add_movie_cubit.dart';
 import 'package:vendorapp/cubits/movieList/movieListCubit.dart';
 import 'package:vendorapp/cubits/movieList/movieListState.dart';
+import 'package:vendorapp/screens/editMovie/edit_movie_page.dart';
 import 'package:vendorapp/screens/movieList/widgets/MovieItem.dart';
 
 class MovieListPage extends StatefulWidget {
@@ -100,7 +102,35 @@ class _MovieListPageState extends State<MovieListPage> {
                         itemCount: state.movies.length,
                         itemBuilder: (context, index) {
                           final movie = state.movies[index];
-                          return MovieItem(movie: movie);
+                          return MovieItem(
+                            movie: movie,
+                            onDelete: () async {
+                              context.read<Movielistcubit>().deleteMovie(
+                                movie.id,
+                              );
+                              // setState(() {
+                              //   state.movies.removeAt(index);
+                              // });
+                            },
+                            onEdit: () async {
+                              final shouldRefresh = await Navigator.of(context)
+                                  .push<bool>(
+                                    MaterialPageRoute(
+                                      builder: (_) =>
+                                          EditMoviePage(movie: movie),
+                                    ),
+                                  );
+
+                              if (shouldRefresh == true) {
+                                context.read<Movielistcubit>().fetchMovies(
+                                  search: context
+                                      .read<Movielistcubit>()
+                                      .state
+                                      .searchName,
+                                );
+                              }
+                            },
+                          );
                         },
                       ),
               ),

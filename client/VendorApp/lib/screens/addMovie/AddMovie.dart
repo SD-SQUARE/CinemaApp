@@ -24,7 +24,7 @@ class AddMoviePage extends StatelessWidget {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('Movie created successfully')),
       );
-      Navigator.pop(context);
+      Navigator.pop(context, true);
     } else if (state.errorMessage != null) {
       ScaffoldMessenger.of(
         context,

@@ -8,15 +8,18 @@ create table if not exists customers(
 
 
 -- Movies table hold movie details
-create table if not exists movies(
-  id uuid primary key,
-  title text not null unique,
+create table public.movies (
+  id uuid not null default gen_random_uuid (),
+  title text not null,
   description text not null,
-  price float not null,
-  image text not null unique,
-  seats_number int default 47
-);
-
+  price double precision not null,
+  image text not null,
+  seats_number integer null default 47,
+  "createdAt" timestamp with time zone null default now(),
+  constraint movies_pkey primary key (id),
+  constraint movies_title_key unique (title),
+  constraint movies_image_key unique (image)
+) TABLESPACE pg_default;
 
 -- time show table contain show times for each movie
 create table if not exists timeshows(

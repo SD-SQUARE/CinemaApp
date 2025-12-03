@@ -81,16 +81,25 @@ class MovieSeeding {
         if (imageUrl != null) {
           movie['image'] = imageUrl; // Assign the public URL of the image
 
-          // Insert the movie data into the 'movies' table
-          final response = await SupabaseService.client.from('movies').insert([
-            movie,
-          ]);
+          // 3) Insert movie and get its id
+          final insertedMovie = await SupabaseService.client
+              .from('movies')
+              .insert({
+                'title': movie['title'],
+                'description': movie['description'],
+                'price': movie['price'],
+                'seats_number': movie['seats_number'],
+                'image': movie['image'],
+              })
+              .select('id')
+              .single(); // 👈 get { id: ... }
 
-          if (response != null && response.error != null) {
-            print('Error seeding movie: ${response.error!.message}');
-          } else {
-            print('Movie seeded successfully!');
-          }
+          final String movieId = insertedMovie['id'];
+
+          print('Movie seeded: ${movie['title']}  (id = $movieId)');
+
+          // 4) Seed show times for this movie
+          await _seedShowTimesForMovie(movieId);
         } else {
           print('Error uploading image for movie: ${movie['title']}');
         }
@@ -111,10 +120,6 @@ class MovieSeeding {
           .from('movie_images') // Your storage bucket name
           .upload(fileName, imageFile);
 
-      // if (response.error != null) {
-      //   throw Exception('Error uploading image: ${response.error!.message}');
-      // }
-
       // Get the public URL of the uploaded image
       final imageUrlResponse = SupabaseService.client.storage
           .from('movie_images')
@@ -123,12 +128,6 @@ class MovieSeeding {
       print(response);
       print(imageUrlResponse);
 
-      // if (imageUrlResponse.error != null) {
-      //   throw Exception(
-      //     'Error retrieving public URL: ${imageUrlResponse.error!.message}',
-      //   );
-      // }
-
       // Extract and return the public URL
       final imageUrl = imageUrlResponse;
       return imageUrl;
@@ -136,5 +135,27 @@ class MovieSeeding {
       print("Error uploading image: $e");
       return null;
     }
+  }
+
+  static Future<void> _seedShowTimesForMovie(String movieId) async {
+    final now = DateTime.now();
+
+    // whatever pattern you like
+    final showTimes = <DateTime>[
+      DateTime(now.year, now.month, now.day, 14, 0), // today 14:00
+      DateTime(now.year, now.month, now.day, 18, 0), // today 18:00
+      DateTime(now.year, now.month, now.day + 1, 20, 0), // tomorrow 20:00
+    ];
+
+    final rows = showTimes.map((dt) {
+      return {
+        'mid': movieId,
+        'time': dt.toUtc().toIso8601String(), // 👈 same format as app
+      };
+    }).toList();
+
+    await SupabaseService.client.from('timeshows').insert(rows);
+
+    print('Showtimes seeded for movie $movieId');
   }
 }
