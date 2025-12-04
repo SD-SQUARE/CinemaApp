@@ -62,7 +62,7 @@ class _MovieDetailsBodyState extends State<MovieDetailsBody> {
             ShowTimeCards(
               timeShows: timeShows,
               selected: selectedTimeShow,
-              selectable: false,
+              selectable: true,
               onSelect: (ts) =>
                   context.read<MovieDetailsCubit>().changeShowTime(ts),
             ),

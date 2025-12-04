@@ -96,8 +96,6 @@ class MovieSeeding {
 
           final String movieId = insertedMovie['id'];
 
-          print('Movie seeded: ${movie['title']}  (id = $movieId)');
-
           // 4) Seed show times for this movie
           await _seedShowTimesForMovie(movieId);
         } else {
@@ -124,9 +122,6 @@ class MovieSeeding {
       final imageUrlResponse = SupabaseService.client.storage
           .from('movie_images')
           .getPublicUrl(fileName);
-
-      print(response);
-      print(imageUrlResponse);
 
       // Extract and return the public URL
       final imageUrl = imageUrlResponse;

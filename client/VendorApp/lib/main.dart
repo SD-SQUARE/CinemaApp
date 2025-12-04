@@ -1,7 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:vendorapp/cubits/addMovie/add_movie_cubit.dart';
-import 'package:vendorapp/cubits/editMovie/edit_movie_cubit.dart';
 import 'package:vendorapp/cubits/movieList/movieListCubit.dart';
 import 'package:vendorapp/screens/Home/main.screen.dart';
 import 'package:vendorapp/screens/addMovie/AddMovie.dart';
@@ -24,7 +22,6 @@ void main() async {
       SupabaseService.init(),
       MovieSeeding.seedMovies(),
     ]);
-    print("done");
   } catch (e) {
     print("Error initializing services: $e");
   }
@@ -49,7 +46,6 @@ class MyApp extends StatelessWidget {
         initialRoute: SplashScreen.routeName,
         onGenerateRoute: (settings) {
           late Widget page;
-          print("Navigating to: ${settings.name}");
 
           switch (settings.name) {
             case SplashScreen.routeName:

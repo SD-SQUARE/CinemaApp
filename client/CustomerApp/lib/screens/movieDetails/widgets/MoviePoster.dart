@@ -1,5 +1,5 @@
+import 'package:customerapp/services/supabase_client.dart';
 import 'package:flutter/material.dart';
-import 'package:vendorapp/services/supabase_client.dart';
 
 class MoviePoster extends StatelessWidget {
   final String imageUrl;

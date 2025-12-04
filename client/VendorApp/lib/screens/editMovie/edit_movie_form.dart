@@ -5,6 +5,7 @@ import 'package:vendorapp/cubits/editMovie/edit_movie_cubit.dart';
 import 'package:vendorapp/cubits/editMovie/edit_movie_state.dart';
 import 'package:vendorapp/models/Movie.dart';
 import 'package:vendorapp/screens/editMovie/helpers/EditMovieHelper.dart';
+import 'package:vendorapp/services/supabase_client.dart';
 import 'package:vendorapp/widgets/CustomTextField.dart';
 
 class EditMovieForm extends StatelessWidget {
@@ -56,7 +57,11 @@ class EditMovieForm extends StatelessWidget {
                     ),
                     clipBehavior: Clip.antiAlias,
                     child: state.imageFile == null
-                        ? Image.network(movie.image, fit: BoxFit.cover)
+                        ? Image.network(
+                            "${SupabaseService.getURL()}${movie.image}",
+
+                            fit: BoxFit.cover,
+                          )
                         : Image.file(state.imageFile!, fit: BoxFit.cover),
                   ),
                 ),

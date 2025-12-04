@@ -1,6 +1,6 @@
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:vendorapp/cubits/movieList/movieListState.dart';
-import 'package:vendorapp/services/supabase_client.dart';
+import 'package:customerapp/cubits/movieList/movieListState.dart';
+import 'package:customerapp/services/supabase_client.dart';
 import '../../models/Movie.dart';
 
 class Movielistcubit extends Cubit<Movieliststate> {
@@ -38,19 +38,5 @@ class Movielistcubit extends Cubit<Movieliststate> {
 
   void setSearchText(String value) {
     emit(state.copyWith(searchName: value));
-  }
-
-  Future<void> deleteMovie(String movieId) async {
-    try {
-      emit(state.copyWith(isLoading: true));
-
-      await SupabaseService.client.from('movies').delete().eq('id', movieId);
-
-      // Refresh list after deletion (keeps current search filter)
-      await fetchMovies(search: state.searchName);
-    } catch (e, st) {
-
-      emit(state.copyWith(isLoading: false));
-    }
   }
 }

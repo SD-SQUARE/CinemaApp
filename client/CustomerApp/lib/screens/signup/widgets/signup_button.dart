@@ -1,5 +1,5 @@
 import 'package:customerapp/cubits/SignUp/SignUpCubit.dart';
-import 'package:customerapp/screens/movieList/MovieList.screen.dart';
+import 'package:customerapp/screens/Home/main.screen.dart';
 import 'package:flutter/material.dart';
 import 'package:customerapp/constants/AppColors.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -24,26 +24,22 @@ class SignupButton extends StatelessWidget {
         ),
         onPressed: () {
           // Trigger Cubit / State management here
-          print('Sign Up Button Pressed');
           if (formKey.currentState!.validate()) {
             formKey.currentState!.save();
             // Proceed with signup logic
-            print('Form is valid. Proceeding with signup...');
             context
                 .read<SignUpCubit>()
                 .signUpWithEmailAndPassword()
                 .then((_) {
-                  print('Signup successful!');
                   ScaffoldMessenger.of(context).showSnackBar(
                     const SnackBar(content: Text('Signup successful!')),
                   );
                   Navigator.of(context).pushNamedAndRemoveUntil(
-                    MovieListScreen.routeName,
+                    MainScreen.routeName,
                     (route) => false,
                   );
                 })
                 .catchError((error) {
-                  print('Signup failed: $error');
                   ScaffoldMessenger.of(context).showSnackBar(
                     SnackBar(content: Text('Signup failed: $error')),
                   );

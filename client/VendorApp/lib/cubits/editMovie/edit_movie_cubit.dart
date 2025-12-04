@@ -43,8 +43,6 @@ class EditMovieCubit extends Cubit<EditMovieState> {
 
       emit(state.copyWith(showTimes: list, isLoadingTimes: false));
     } catch (e, st) {
-      print('Error loading showtimes for edit: $e');
-      print(st);
       emit(
         state.copyWith(
           isLoadingTimes: false,
@@ -85,12 +83,6 @@ class EditMovieCubit extends Cubit<EditMovieState> {
 
   // ---------- SUBMIT EDIT ----------
   Future<void> submit() async {
-    print('EDIT MOVIE ID: ${movie.id}');
-    print(state.title);
-    print(state.description);
-    print(state.price);
-    print(state.imageFile);
-    print(state.showTimes);
 
     // Basic validations
     if (state.title.trim().isEmpty ||
@@ -110,7 +102,6 @@ class EditMovieCubit extends Cubit<EditMovieState> {
 
     final priceValue = double.tryParse(state.price.trim()) ?? 0.0;
 
-    print(priceValue);
     if (priceValue == 0.0) {
       emit(
         state.copyWith(
@@ -170,8 +161,6 @@ class EditMovieCubit extends Cubit<EditMovieState> {
         ),
       );
     } catch (e, st) {
-      print('Error editing movie: $e');
-      print(st);
       emit(
         state.copyWith(
           isSubmitting: false,

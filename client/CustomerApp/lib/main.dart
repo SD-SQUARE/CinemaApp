@@ -1,7 +1,10 @@
 import 'package:customerapp/cubits/Login/LoginCubit.dart';
 import 'package:customerapp/cubits/SignUp/SignUpCubit.dart';
+import 'package:customerapp/cubits/movieDetails/movieDetailsCubit.dart';
+import 'package:customerapp/cubits/movieList/movieListCubit.dart';
+import 'package:customerapp/screens/Home/main.screen.dart';
 import 'package:customerapp/screens/login/Login.screen.dart';
-import 'package:customerapp/screens/movieList/MovieList.screen.dart';
+import 'package:customerapp/screens/movieDetails/MovieDetailsPage.dart';
 import 'package:customerapp/screens/signup/Signup.screen.dart';
 import 'package:customerapp/screens/splash/splash.screen.dart';
 import 'package:customerapp/services/supabase_client.dart';
@@ -29,6 +32,8 @@ class MyApp extends StatelessWidget {
       providers: [
         BlocProvider(create: (context) => SignUpCubit()),
         BlocProvider(create: (context) => LoginCubit()),
+        BlocProvider(create: (context) => Movielistcubit()),
+        BlocProvider(create: (context) => MovieDetailsCubit()),
       ],
       child: MaterialApp(
         title: 'Customer App',
@@ -47,9 +52,15 @@ class MyApp extends StatelessWidget {
             case SignupScreen.routeName:
               page = const SignupScreen();
               break;
-            case MovieListScreen.routeName:
-              page = MovieListScreen();
+
+            case MainScreen.routeName:
+              page = MainScreen();
               break;
+            case MovieDetailsPage.routeName:
+              final movieId = settings.arguments as String;
+              page = MovieDetailsPage(movieId: movieId);
+              break;
+
             default:
               page = const SplashScreen(); // fallback
           }

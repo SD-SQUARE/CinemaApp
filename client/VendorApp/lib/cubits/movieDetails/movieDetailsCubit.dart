@@ -1,18 +1,20 @@
+import 'dart:math';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:supabase_flutter/supabase_flutter.dart'; // 👈 important
+import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:vendorapp/cubits/movieDetails/MovieDetailsState.dart';
 import 'package:vendorapp/models/MovieDetails.dart';
 import 'package:vendorapp/models/TimeShow.dart';
+import 'package:vendorapp/services/notification_service.dart';
 import 'package:vendorapp/services/supabase_client.dart';
 
 class MovieDetailsCubit extends Cubit<MovieDetailsState> {
   MovieDetailsCubit() : super(MovieDetailsState.initial());
 
-  RealtimeChannel? _reservationChannel; // 👈 keep channel reference
+  RealtimeChannel? _ticketChannel; // Channel for tickets table updates
 
   @override
   Future<void> close() {
-    _reservationChannel?.unsubscribe();
+    _ticketChannel?.unsubscribe();
     return super.close();
   }
 
@@ -20,7 +22,6 @@ class MovieDetailsCubit extends Cubit<MovieDetailsState> {
     try {
       emit(state.copyWith(isLoading: true, errorMessage: null));
 
-      // 1) movie
       final movieRes = await SupabaseService.client
           .from('movies')
           .select()
@@ -34,7 +35,6 @@ class MovieDetailsCubit extends Cubit<MovieDetailsState> {
 
       final movie = MovieDetails.fromMap(movieRes);
 
-      // 2) time shows
       final timesRes = await SupabaseService.client
           .from('timeshows')
           .select()
@@ -51,7 +51,7 @@ class MovieDetailsCubit extends Cubit<MovieDetailsState> {
         firstTimeShow = timeShows.first;
         reservedSeats = await _loadReservedSeats(firstTimeShow.id);
 
-        _subscribeToReservations(firstTimeShow.id);
+        _subscribeToTickets(firstTimeShow.id); // Subscribe to ticket bookings
       }
 
       emit(
@@ -65,8 +65,6 @@ class MovieDetailsCubit extends Cubit<MovieDetailsState> {
         ),
       );
     } catch (e, st) {
-      print('Error loading movie details: $e');
-      print(st);
       emit(
         state.copyWith(
           isLoading: false,
@@ -86,72 +84,80 @@ class MovieDetailsCubit extends Cubit<MovieDetailsState> {
     return list.map<int>((row) => int.parse(row['seat'] as String)).toSet();
   }
 
-  /// subscribe to INSERT/DELETE on reservations for this timeshow
-  void _subscribeToReservations(String timeShowId) {
-    // cancel previous channel if exists
-    _reservationChannel?.unsubscribe();
+  /// Subscribe to INSERT/DELETE on the tickets table (when a ticket is booked)
+  void _subscribeToTickets(String timeShowId) {
+    _ticketChannel
+        ?.unsubscribe(); // Unsubscribe from previous channel if it exists
 
     final client = SupabaseService.client;
 
-    _reservationChannel = client.channel('reservations_tid_$timeShowId')
+    _ticketChannel = client.channel('tickets_tid_$timeShowId')
       ..onPostgresChanges(
         event: PostgresChangeEvent.insert,
         schema: 'public',
-        table: 'reservations',
+        table: 'tickets',
         filter: PostgresChangeFilter(
           type: PostgresChangeFilterType.eq,
           column: 'tid',
           value: timeShowId,
         ),
         callback: (payload) async {
-          final seats = await _loadReservedSeats(timeShowId);
-          emit(state.copyWith(reservedSeats: seats));
-        },
-      )
-      ..onPostgresChanges(
-        event: PostgresChangeEvent.delete,
-        schema: 'public',
-        table: 'reservations',
-        filter: PostgresChangeFilter(
-          type: PostgresChangeFilterType.eq,
-          column: 'tid',
-          value: timeShowId,
-        ),
-        callback: (payload) async {
-          final seats = await _loadReservedSeats(timeShowId);
-          emit(state.copyWith(reservedSeats: seats));
+          final ticketSeats =
+              payload.newRecord['seats'] as List; // List of booked seats
+
+          final movieRes = await SupabaseService.client
+              .from('movies')
+              .select('title')
+              .eq('id', state.movie!.id)
+              .maybeSingle();
+
+          final movieName = movieRes?['title'] ?? 'Unknown Movie';
+
+          final showtimeRes = await SupabaseService.client
+              .from('timeshows')
+              .select('time')
+              .eq('id', timeShowId)
+              .maybeSingle();
+
+          final showtime = showtimeRes?['time'];
+          final formattedShowtime = showtime != null
+              ? DateTime.parse(showtime).toLocal().toString()
+              : 'Unknown Time';
+
+          final seatList = ticketSeats.join(
+            ", ",
+          ); // Create seat list as a string
+
+          // Show notification with movie name, booked seats, and showtime
+          NotificationService.showNotification(
+            body:
+                "Seats $seatList have been booked for the movie '$movieName' at $formattedShowtime.",
+            title: "New Ticket Booked",
+            id: Random().nextInt(9999),
+          );
+
+          // Update the reserved seats in the state
+          final reservedSeats = await _loadReservedSeats(timeShowId);
+          emit(state.copyWith(reservedSeats: reservedSeats));
         },
       )
       ..subscribe();
   }
 
-  /// when user changes show time from dropdown
+  // Change show time selection
   Future<void> changeShowTime(TimeShow? ts) async {
     if (ts == null) return;
-    if (ts == state.selectedTimeShow) return; // optional: no-op if same
+    if (ts == state.selectedTimeShow) return;
 
-    // 1) update selected show time & clear selected seats
-    emit(
-      state.copyWith(
-        selectedTimeShow: ts,
-        selectedSeats: <int>{},
-        // ❌ DO NOT touch isLoading here
-      ),
-    );
+    emit(state.copyWith(selectedTimeShow: ts, selectedSeats: <int>{}));
 
-    // 2) load reserved seats for this timeshow
     final reserved = await _loadReservedSeats(ts.id);
-    _subscribeToReservations(ts.id); // listen to new timeshow
+    _subscribeToTickets(ts.id); // Subscribe to new time show
 
-    // 3) update only reservedSeats
-    emit(
-      state.copyWith(
-        reservedSeats: reserved,
-        // keep selectedTimeShow, selectedSeats as they are
-      ),
-    );
+    emit(state.copyWith(reservedSeats: reserved));
   }
 
+  // Toggle the seat selection for the user
   void toggleSeat(int index) {
     if (state.reservedSeats.contains(index)) return; // can't select reserved
 

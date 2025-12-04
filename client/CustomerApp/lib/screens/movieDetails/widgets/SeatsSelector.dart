@@ -1,14 +1,11 @@
 import 'package:flutter/material.dart';
-import 'package:vendorapp/constants/AppColors.dart';
+import 'package:customerapp/constants/AppColors.dart';
 
 class SeatsSelector extends StatelessWidget {
-  final Set<int> selectedSeats;
-  final Set<int> reservedSeats;
+  final Set<int> selectedSeats; // Current user's selected seats
+  final Set<int> reservedSeats; // Reserved seats (by other users)
 
-  /// if true => user can select seats
-  /// if false => view only (no tap)
   final bool selectable;
-
   final ValueChanged<int> onToggleSeat;
 
   const SeatsSelector({
@@ -64,18 +61,17 @@ class SeatsSelector extends StatelessWidget {
 
                   Color color;
                   if (isReserved) {
-                    color = Colors.grey[600]!; // reserved (grey)
+                    color = Colors.grey[600]!; // Reserved (gray)
                   } else if (isSelected) {
-                    color = AppColors.primaryColor; // selected (primary)
+                    color = AppColors.primaryColor; // Selected (main color)
                   } else {
-                    color = Colors.grey[800]!; // normal (dark grey)
+                    color = Colors.grey[800]!; // Available (dark gray)
                   }
 
                   return GestureDetector(
-                    // ⛔ Disable interaction in view-only mode
                     onTap: (!selectable || isReserved)
                         ? null
-                        : () => onToggleSeat(idx),
+                        : () => onToggleSeat(idx), // Toggle on seat tap
 
                     child: Container(
                       margin: const EdgeInsets.symmetric(horizontal: 1),
