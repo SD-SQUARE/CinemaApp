@@ -41,7 +41,6 @@ class SignUpCubit extends Cubit<SignupState> {
           .select()
           .single();
 
-      print(customerResponse.toString());
       if (customerResponse.isEmpty) {
         return false;
       }

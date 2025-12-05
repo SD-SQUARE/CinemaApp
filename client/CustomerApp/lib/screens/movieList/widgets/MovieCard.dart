@@ -1,7 +1,7 @@
+import 'package:customerapp/services/supabase_client.dart';
 import 'package:flutter/material.dart';
-import 'package:vendorapp/models/Movie.dart';
-import 'package:vendorapp/services/supabase_client.dart';
-import 'package:vendorapp/utils/TextHelper.dart';
+import 'package:customerapp/models/Movie.dart';
+import 'package:customerapp/utils/TextHelper.dart';
 
 class MovieCard extends StatelessWidget {
   final Movie movie;

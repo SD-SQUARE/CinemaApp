@@ -36,11 +36,6 @@ class AddMovieCubit extends Cubit<AddMovieState> {
   }
 
   Future<void> submit() async {
-    print(state.title);
-    print(state.description);
-    print(state.price);
-    print(state.imageFile);
-    print(state.showTimes);
     // Basic validations
     if (state.title.trim().isEmpty ||
         state.description.trim().isEmpty ||
@@ -70,7 +65,6 @@ class AddMovieCubit extends Cubit<AddMovieState> {
       // 1) Upload image to storage
       final imageUrl = await ImagesServices.uploadImage(state.imageFile!);
 
-      print(imageUrl);
       if (imageUrl == null) {
         throw Exception('Image upload failed');
       }
@@ -96,7 +90,6 @@ class AddMovieCubit extends Cubit<AddMovieState> {
           'mid': movieId,
           'time': dt.toUtc().toIso8601String(),
         });
-        print(a);
       }
 
       emit(

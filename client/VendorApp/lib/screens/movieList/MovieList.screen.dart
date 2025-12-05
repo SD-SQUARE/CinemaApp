@@ -3,7 +3,6 @@ import 'dart:async'; // 👈 IMPORTANT for Timer
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:vendorapp/constants/AppColors.dart';
-import 'package:vendorapp/cubits/addMovie/add_movie_cubit.dart';
 import 'package:vendorapp/cubits/movieList/movieListCubit.dart';
 import 'package:vendorapp/cubits/movieList/movieListState.dart';
 import 'package:vendorapp/screens/editMovie/edit_movie_page.dart';

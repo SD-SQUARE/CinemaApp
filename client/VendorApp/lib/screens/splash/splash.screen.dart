@@ -5,11 +5,9 @@ import 'package:lottie/lottie.dart';
 import 'package:vendorapp/constants/AppAssets.dart';
 import 'package:vendorapp/constants/AppColors.dart';
 import 'package:vendorapp/constants/AppConstraints.dart';
-import 'package:vendorapp/screens/movieList/MovieList.screen.dart';
 import 'package:vendorapp/screens/Home/main.screen.dart';
 import 'package:vendorapp/screens/splash/controller/splash_controller.dart';
 import 'package:vendorapp/screens/splash/widgets/SplashAnimatedText.dart';
-import 'package:vendorapp/services/supabase_client.dart';
 
 class SplashScreen extends StatefulWidget {
   static const routeName = '/splash';

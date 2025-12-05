@@ -7,7 +7,7 @@ class ImagesServices {
     try {
       final extension = path.extension(imageFile.path);
 
-      // final fileName = path.basename(imageFile.path);
+      // Generate a unique file name based on the current timestamp
       final fileName =
           "movie_${DateTime.now().millisecondsSinceEpoch}$extension";
 
@@ -16,23 +16,21 @@ class ImagesServices {
           .from('movie_images') // Your storage bucket name
           .upload(fileName, imageFile);
 
-      print("error ---> ");
-      print(response);
-
-      // Check if the response contains an error
-      // if (response == imageFile) {
-      //   throw Exception('Error uploading image: ${response}');
-      // }
-
       // Get the public URL of the uploaded image
       final imageUrlResponse = SupabaseService.client.storage
           .from('movie_images')
           .getPublicUrl(fileName);
 
       // Extract the public URL from the response data
-      final imageUrl = imageUrlResponse; // 'publicURL' is the correct key
+      final imageUrl = imageUrlResponse;
 
-      return imageUrl; // Return the public URL of the uploaded image
+      // Return the path starting from '/storage' (exclude the IP and host part)
+      final storagePath = imageUrl.split(
+        '/storage',
+      )[1]; // Get the part after '/storage'
+
+      return '/storage' +
+          storagePath; // Return the storage path part of the URL
     } catch (e) {
       print("Error uploading image: $e");
       return null;

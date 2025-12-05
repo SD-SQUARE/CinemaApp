@@ -13,5 +13,9 @@ class SupabaseService {
     );
   }
 
+  static String getURL() {
+    return _URL;
+  }
+
   static SupabaseClient get client => Supabase.instance.client;
 }

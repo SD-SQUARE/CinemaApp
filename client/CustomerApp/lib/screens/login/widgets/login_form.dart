@@ -1,4 +1,3 @@
-import 'package:customerapp/constants/AppConstraints.dart';
 import 'package:customerapp/screens/signup/Signup.screen.dart';
 import 'package:flutter/material.dart';
 import 'login_button.dart';

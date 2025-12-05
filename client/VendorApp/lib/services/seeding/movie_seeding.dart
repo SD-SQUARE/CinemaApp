@@ -79,7 +79,10 @@ class MovieSeeding {
         final imageUrl = await uploadImageToSupabase(file, fileName);
 
         if (imageUrl != null) {
-          movie['image'] = imageUrl; // Assign the public URL of the image
+          final uri = Uri.parse(imageUrl);
+          final path = uri.path;
+          final fileName = path.split('/').last;
+          movie['image'] = '/storage/v1/object/public/movie_images/$fileName'; // Assign the public URL of the image
 
           // 3) Insert movie and get its id
           final insertedMovie = await SupabaseService.client
@@ -95,8 +98,6 @@ class MovieSeeding {
               .single(); // 👈 get { id: ... }
 
           final String movieId = insertedMovie['id'];
-
-          print('Movie seeded: ${movie['title']}  (id = $movieId)');
 
           // 4) Seed show times for this movie
           await _seedShowTimesForMovie(movieId);
@@ -124,9 +125,6 @@ class MovieSeeding {
       final imageUrlResponse = SupabaseService.client.storage
           .from('movie_images')
           .getPublicUrl(fileName);
-
-      print(response);
-      print(imageUrlResponse);
 
       // Extract and return the public URL
       final imageUrl = imageUrlResponse;

@@ -3,8 +3,8 @@ import 'dart:async';
 import 'package:customerapp/constants/AppAssets.dart';
 import 'package:customerapp/constants/AppColors.dart';
 import 'package:customerapp/constants/AppConstraints.dart';
+import 'package:customerapp/screens/Home/main.screen.dart';
 import 'package:customerapp/screens/login/Login.screen.dart';
-import 'package:customerapp/screens/movieList/MovieList.screen.dart';
 import 'package:customerapp/screens/splash/controller/splash_controller.dart';
 import 'package:customerapp/screens/splash/widgets/SplashAnimatedText.dart';
 import 'package:customerapp/services/supabase_client.dart';
@@ -70,13 +70,10 @@ class _SplashScreenState extends State<SplashScreen>
     // You can also use Supabase.instance.client.auth.currentUser
     final user = session?.user;
 
-    print('user: $user');
-
     Navigator.of(context).pushNamedAndRemoveUntil(
-      user != null ? MovieListScreen.routeName : LoginScreen.routeName,
+      user != null ? MainScreen.routeName : LoginScreen.routeName,
       (route) => false,
     );
-
   }
 
   @override
