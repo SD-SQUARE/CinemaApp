@@ -1,95 +1,84 @@
 import 'package:customerapp/models/TicketItem.dart';
 import 'package:customerapp/screens/myTickets/widgets/TicketWidgets.dart';
-import 'package:customerapp/ticketDetails/TicketDetails.screen.dart';
+import 'package:customerapp/screens/ticketDetails/TicketDetails.screen.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:customerapp/constants/AppColors.dart';
-import 'package:customerapp/services/ticket_service.dart';
+import 'package:customerapp/cubits/ticketList/ticket_list_cubit.dart';
+import 'package:customerapp/cubits/ticketList/ticket_list_state.dart';
 
-class MyTicketsPage extends StatefulWidget {
+class MyTicketsPage extends StatelessWidget {
   static const routeName = '/ticket-list';
 
   const MyTicketsPage({super.key});
 
-  @override
-  State<MyTicketsPage> createState() => _MyTicketsPageState();
-}
-
-class _MyTicketsPageState extends State<MyTicketsPage> {
-  late Future<List<TicketItem>> _ticketsFuture;
-
-  @override
-  void initState() {
-    super.initState();
-
-    _ticketsFuture = fetchTicketsData();
-  }
-
-  void _refreshTickets() {
-    setState(() {
-      _ticketsFuture = fetchTicketsData();
-    });
-  }
-
-  void _navigateToDetails(TicketItem ticket) async {
+  void _navigateToDetails(BuildContext context, TicketItem ticket) async {
     await Navigator.of(
       context,
     ).pushNamed(TicketDetailsPage.routeName, arguments: ticket);
 
-    _refreshTickets();
+    context.read<TicketListCubit>().fetchTickets();
   }
 
   @override
   Widget build(BuildContext context) {
-    return FutureBuilder<List<TicketItem>>(
-      future: _ticketsFuture,
-      builder: (context, snapshot) {
-        if (snapshot.connectionState == ConnectionState.waiting) {
+    return BlocBuilder<TicketListCubit, TicketListState>(
+      builder: (context, state) {
+        if (state is TicketListLoading || state is TicketListInitial) {
           return const Center(child: CircularProgressIndicator());
         }
 
-        if (snapshot.hasError) {
+        if (state is TicketListError) {
           return Center(
             child: Text(
-              'Error loading tickets: ${snapshot.error}',
+              'Error loading tickets: ${state.message}',
               style: const TextStyle(color: AppColors.secondaryTextColor),
             ),
           );
         }
 
-        List<TicketItem> tickets = snapshot.data ?? [];
+        if (state is TicketListLoaded) {
+          final tickets = state.tickets;
 
-        if (tickets.isNotEmpty) {
-          tickets = tickets.reversed.toList();
-        }
-
-        if (tickets.isEmpty) {
-          return const Center(
-            child: Text(
-              'You have no booked tickets yet.',
-              style: TextStyle(
-                fontSize: 16,
-                color: AppColors.secondaryTextColor,
+          if (tickets.isEmpty) {
+            return RefreshIndicator(
+              onRefresh: () => context.read<TicketListCubit>().fetchTickets(),
+              child: Center(
+                child: ListView(
+                  children: [
+                    SizedBox(height: MediaQuery.of(context).size.height * 0.3),
+                    const Center(
+                      child: Text(
+                        'You have no booked tickets yet.',
+                        style: TextStyle(
+                          fontSize: 16,
+                          color: AppColors.secondaryTextColor,
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
               ),
+            );
+          }
+
+          return RefreshIndicator(
+            onRefresh: () => context.read<TicketListCubit>().fetchTickets(),
+            child: ListView.builder(
+              padding: EdgeInsets.only(top: 16),
+              itemCount: tickets.length,
+              itemBuilder: (context, index) {
+                final ticket = tickets[index];
+                return GestureDetector(
+                  onTap: () => _navigateToDetails(context, ticket),
+                  child: buildTicketCard(ticket),
+                );
+              },
             ),
           );
         }
 
-        return RefreshIndicator(
-          onRefresh: () async {
-            _refreshTickets();
-            await _ticketsFuture;
-          },
-          child: ListView.builder(
-            itemCount: tickets.length,
-            itemBuilder: (context, index) {
-              final ticket = tickets[index];
-              return GestureDetector(
-                onTap: () => _navigateToDetails(ticket),
-                child: buildTicketCard(ticket),
-              );
-            },
-          ),
-        );
+        return const SizedBox.shrink();
       },
     );
   }
