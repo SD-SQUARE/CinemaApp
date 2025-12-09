@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:vendorapp/cubits/movieList/movieListCubit.dart';
+import 'package:vendorapp/cubits/statistics/statistics_cubit.dart';
 import 'package:vendorapp/screens/Home/main.screen.dart';
 import 'package:vendorapp/screens/addMovie/AddMovie.dart';
 import 'package:vendorapp/screens/movieDetails/MovieDetailsPage.dart';
@@ -39,6 +40,7 @@ class MyApp extends StatelessWidget {
       providers: [
         BlocProvider(create: (context) => Movielistcubit()),
         BlocProvider(create: (context) => MovieDetailsCubit()),
+        BlocProvider(create: (context) => StatisticsCubit()),
       ],
       child: MaterialApp(
         title: 'Customer App',
