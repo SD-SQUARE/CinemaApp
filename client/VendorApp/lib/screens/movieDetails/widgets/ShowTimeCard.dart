@@ -22,7 +22,7 @@ class ShowTimeCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final baseColor = Colors.grey[850]!;
-    final highlightColor = AppColors.primaryColor;
+    final highlightColor = AppColors.accentColor;
 
     return GestureDetector(
       onTap: selectable ? onTap : null,
