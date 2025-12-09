@@ -189,58 +189,29 @@ begin
 end;
 $$;
 
-
 -- delete ticket function
 
-create or replace function cancel_ticket(
-  p_ticket_id uuid
-)
+create or replace function cancel_ticket( p_ticket_id uuid )
 returns jsonb
 language plpgsql
 security definer
 as $$
-declare
-  v_cid uuid;
-  v_tid uuid;
-  v_showtime timestamptz;
-begin
-  -- Fetch ticket info
-  select cid, tid
-  into v_cid, v_tid
-  from tickets
-  where id = p_ticket_id;
+declare v_cid uuid; v_tid uuid; v_mid uuid; v_showtime timestamptz; v_seats text[]; -- Variable to hold the array of seats
+begin select cid, tid, mid, seats into v_cid, v_tid, v_mid, v_seats from tickets where id = p_ticket_id;
 
-  if v_cid is null then
-    return jsonb_build_object('ok', false, 'reason', 'ticket_not_found');
-  end if;
+if v_cid is null then return jsonb_build_object('ok', false, 'reason', 'ticket_not_found'); end if;
 
-  -- Validate ticket owner
-  if v_cid not in (select id from customers where uid = auth.uid()) then
-    return jsonb_build_object('ok', false, 'reason', 'not_owner');
-  end if;
+if v_cid not in (select id from customers where uid = auth.uid()) then return jsonb_build_object('ok', false, 'reason', 'not_owner'); end if;
 
-  -- Fetch showtime datetime
-  select time into v_showtime
-  from timeshows
-  where id = v_tid;
+select time into v_showtime from timeshows where id = v_tid;
 
-  -- Check expiration
-  if now() >= v_showtime then
-    return jsonb_build_object('ok', false, 'reason', 'expired');
-  end if;
+if now() >= v_showtime then return jsonb_build_object('ok', false, 'reason', 'expired'); end if;
 
-  -- Delete reservations linked to this ticket
-  delete from reservations
-  where cid = v_cid
-    and mid = (select mid from tickets where id = p_ticket_id)
-    and tid = v_tid
-    and seat = any (select seats from tickets where id = p_ticket_id);
+delete from reservations where cid = v_cid and mid = v_mid and tid = v_tid and seat = any(v_seats); 
 
-  -- Delete the ticket
-  delete from tickets
-  where id = p_ticket_id;
+delete from tickets where id = p_ticket_id;
 
-  return jsonb_build_object('ok', true, 'ticket_id', p_ticket_id);
+return jsonb_build_object('ok', true, 'ticket_id', p_ticket_id);
 end;
 $$;
 
