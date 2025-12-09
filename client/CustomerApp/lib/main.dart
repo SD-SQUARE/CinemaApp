@@ -5,6 +5,8 @@ import 'package:customerapp/cubits/movieList/movieListCubit.dart';
 import 'package:customerapp/screens/Home/main.screen.dart';
 import 'package:customerapp/screens/login/Login.screen.dart';
 import 'package:customerapp/screens/movieDetails/MovieDetailsPage.dart';
+import 'package:customerapp/screens/movieList/MovieList.screen.dart';
+import 'package:customerapp/screens/myTickets/myTickets.screen.dart';
 import 'package:customerapp/screens/signup/Signup.screen.dart';
 import 'package:customerapp/screens/splash/splash.screen.dart';
 import 'package:customerapp/services/supabase_client.dart';
@@ -60,7 +62,9 @@ class MyApp extends StatelessWidget {
               final movieId = settings.arguments as String;
               page = MovieDetailsPage(movieId: movieId);
               break;
-
+            case MyTicketsPage.routeName:
+              page = MyTicketsPage();
+              break;
             default:
               page = const SplashScreen(); // fallback
           }
