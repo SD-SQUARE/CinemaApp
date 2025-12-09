@@ -32,7 +32,10 @@ class MyApp extends StatelessWidget {
       providers: [
         BlocProvider(create: (context) => SignUpCubit()),
         BlocProvider(create: (context) => LoginCubit()),
-        BlocProvider(create: (context) => Movielistcubit()),
+        BlocProvider(
+          create: (context) => Movielistcubit(),
+          lazy: false, // Force immediate initialization for real-time updates
+        ),
         BlocProvider(create: (context) => MovieDetailsCubit()),
       ],
       child: MaterialApp(
