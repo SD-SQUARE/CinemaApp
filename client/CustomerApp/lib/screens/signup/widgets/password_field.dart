@@ -37,22 +37,22 @@ class _PasswordFieldState extends State<PasswordField> {
   InputDecoration _decor(String label, IconData icon) {
     return InputDecoration(
       labelText: label,
-      prefixIcon: Icon(icon, color: AppColors.primaryColor),
+      prefixIcon: Icon(icon, color: AppColors.accentColor),
       errorMaxLines: 4,
       suffixIcon: IconButton(
         icon: Icon(
           showPassword ? Icons.visibility_off : Icons.visibility,
-          color: AppColors.primaryColor,
+          color: AppColors.accentColor,
         ),
         onPressed: toogleVisibility,
       ),
-      labelStyle: TextStyle(color: AppColors.primaryColor),
+      labelStyle: TextStyle(color: AppColors.accentColor),
       focusedBorder: OutlineInputBorder(
-        borderSide: BorderSide(color: AppColors.primaryColor, width: 2),
+        borderSide: BorderSide(color: AppColors.accentColor, width: 2),
         borderRadius: BorderRadius.circular(12),
       ),
       enabledBorder: OutlineInputBorder(
-        borderSide: BorderSide(color: AppColors.primaryColor),
+        borderSide: BorderSide(color: AppColors.accentColor),
         borderRadius: BorderRadius.circular(12),
       ),
       border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),

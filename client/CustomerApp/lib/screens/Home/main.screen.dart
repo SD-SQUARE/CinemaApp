@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:customerapp/constants/AppColors.dart';
 import 'package:customerapp/screens/movieList/MovieList.screen.dart';
-import 'package:customerapp/screens/myTickets/myTickets.secreen.dart';
+import 'package:customerapp/screens/myTickets/myTickets.screen.dart';
 import 'package:customerapp/screens/login/Login.screen.dart';
 // <- If you have a login screen
 
@@ -77,7 +77,7 @@ class _MainScreenState extends State<MainScreen> {
       ),
 
       bottomNavigationBar: BottomNavigationBar(
-        unselectedItemColor: Colors.grey,
+        unselectedItemColor: const Color(0xFF5C5C5C),
         selectedItemColor: AppColors.textColor,
         backgroundColor: AppColors.primaryColor,
         currentIndex: _selectedIndex,
