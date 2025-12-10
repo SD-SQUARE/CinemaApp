@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:vendorapp/cubits/movieList/movieListCubit.dart';
+import 'package:vendorapp/cubits/ticketNotifications/ticket_notifications_cubit.dart';
+import 'package:vendorapp/cubits/statistics/statistics_cubit.dart';
 import 'package:vendorapp/screens/Home/main.screen.dart';
 import 'package:vendorapp/screens/addMovie/AddMovie.dart';
 import 'package:vendorapp/screens/movieDetails/MovieDetailsPage.dart';
