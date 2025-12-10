@@ -2,7 +2,7 @@
 import 'package:flutter/material.dart';
 import 'package:vendorapp/constants/AppColors.dart';
 import 'package:vendorapp/screens/movieList/MovieList.screen.dart';
-import 'package:vendorapp/screens/statistics/statistics.secreen.dart';
+import 'package:vendorapp/screens/statistics/statistics.screen.dart';
 
 class NavigationBarSection extends StatefulWidget {
   const NavigationBarSection({super.key});
@@ -29,7 +29,7 @@ class _NavigationBarStateSection extends State<NavigationBarSection> {
       children: [
         Expanded(child: _pages[_selectedIndex]),
         BottomNavigationBar(
-          unselectedItemColor: Colors.grey,
+          unselectedItemColor: const Color(0xFF5C5C5C),
           selectedItemColor: AppColors.textColor,
           backgroundColor: AppColors.primaryColor,
           currentIndex: _selectedIndex,

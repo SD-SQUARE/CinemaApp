@@ -1,12 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:vendorapp/cubits/movieList/movieListCubit.dart';
-import 'package:vendorapp/cubits/ticketNotifications/ticket_notifications_cubit.dart';
 import 'package:vendorapp/screens/Home/main.screen.dart';
 import 'package:vendorapp/screens/addMovie/AddMovie.dart';
 import 'package:vendorapp/screens/movieDetails/MovieDetailsPage.dart';
 import 'package:vendorapp/cubits/movieDetails/movieDetailsCubit.dart';
 import 'package:vendorapp/screens/splash/splash.screen.dart';
+import 'package:vendorapp/screens/statistics/statistics.screen.dart';
 import 'package:vendorapp/services/notification_service.dart';
 import 'package:vendorapp/services/seeding/movie_seeding.dart';
 import 'package:vendorapp/services/supabase_client.dart';
@@ -43,6 +43,7 @@ class MyApp extends StatelessWidget {
           create: (context) => TicketNotificationsCubit(),
           lazy: false, // Force immediate initialization
         ),
+        BlocProvider(create: (context) => StatisticsCubit()),
       ],
       child: MaterialApp(
         title: 'Customer App',
@@ -65,6 +66,9 @@ class MyApp extends StatelessWidget {
             case MovieDetailsPage.routeName:
               final movieId = settings.arguments as String;
               page = MovieDetailsPage(movieId: movieId);
+              break;
+            case StatisticsPage.routeName:
+              page = StatisticsPage();
               break;
 
             default:
