@@ -22,7 +22,7 @@ class MoviePrice extends StatelessWidget {
           "${price.toStringAsFixed(2)} LE",
           style: TextStyle(
             fontSize: 18,
-            color: AppColors.primaryColor,
+            color: AppColors.accentColor,
             fontWeight: FontWeight.bold,
           ),
         ),

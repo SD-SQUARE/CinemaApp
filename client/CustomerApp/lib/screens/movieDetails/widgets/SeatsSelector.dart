@@ -63,7 +63,7 @@ class SeatsSelector extends StatelessWidget {
                   if (isReserved) {
                     color = Colors.grey[600]!; // Reserved (gray)
                   } else if (isSelected) {
-                    color = AppColors.primaryColor; // Selected (main color)
+                    color = AppColors.accentColor; // Selected (main color)
                   } else {
                     color = Colors.grey[800]!; // Available (dark gray)
                   }

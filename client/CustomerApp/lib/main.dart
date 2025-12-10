@@ -2,13 +2,17 @@ import 'package:customerapp/cubits/Login/LoginCubit.dart';
 import 'package:customerapp/cubits/SignUp/SignUpCubit.dart';
 import 'package:customerapp/cubits/movieDetails/movieDetailsCubit.dart';
 import 'package:customerapp/cubits/movieList/movieListCubit.dart';
+import 'package:customerapp/models/TicketItem.dart';
 import 'package:customerapp/screens/Home/main.screen.dart';
 import 'package:customerapp/screens/login/Login.screen.dart';
 import 'package:customerapp/screens/movieDetails/MovieDetailsPage.dart';
+import 'package:customerapp/screens/movieList/MovieList.screen.dart';
+import 'package:customerapp/screens/myTickets/myTickets.screen.dart';
 import 'package:customerapp/screens/signup/Signup.screen.dart';
 import 'package:customerapp/screens/splash/splash.screen.dart';
 import 'package:customerapp/services/supabase_client.dart';
 import 'package:customerapp/services/notification_service.dart';
+import 'package:customerapp/ticketDetails/TicketDetails.screen.dart';
 import 'package:customerapp/utils/permission_handler.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -63,7 +67,13 @@ class MyApp extends StatelessWidget {
               final movieId = settings.arguments as String;
               page = MovieDetailsPage(movieId: movieId);
               break;
-
+            case MyTicketsPage.routeName:
+              page = MyTicketsPage();
+              break;
+            case TicketDetailsPage.routeName:
+              final args = settings.arguments as TicketItem;
+              page = TicketDetailsPage(ticket: args);
+              break;
             default:
               page = const SplashScreen(); // fallback
           }
