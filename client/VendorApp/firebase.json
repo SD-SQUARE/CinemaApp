@@ -1,0 +1,1 @@
+{"flutter":{"platforms":{"android":{"default":{"projectId":"cinema-fcm","appId":"1:274554619118:android:f428a1cd9290582c9c1fff","fileOutput":"android/app/google-services.json"}},"dart":{"lib/firebase_options.dart":{"projectId":"cinema-fcm","configurations":{"android":"1:274554619118:android:f428a1cd9290582c9c1fff","web":"1:274554619118:web:a776eb17710c44df9c1fff"}}}}}}

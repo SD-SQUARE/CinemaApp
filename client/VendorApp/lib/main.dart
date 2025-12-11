@@ -1,14 +1,18 @@
+import 'package:firebase_core/firebase_core.dart';
+import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:vendorapp/cubits/movieList/movieListCubit.dart';
 import 'package:vendorapp/cubits/ticketNotifications/ticket_notifications_cubit.dart';
 import 'package:vendorapp/cubits/statistics/statistics_cubit.dart';
+import 'package:vendorapp/firebase_options.dart';
 import 'package:vendorapp/screens/Home/main.screen.dart';
 import 'package:vendorapp/screens/addMovie/AddMovie.dart';
 import 'package:vendorapp/screens/movieDetails/MovieDetailsPage.dart';
 import 'package:vendorapp/cubits/movieDetails/movieDetailsCubit.dart';
 import 'package:vendorapp/screens/splash/splash.screen.dart';
 import 'package:vendorapp/screens/statistics/statistics.screen.dart';
+import 'package:vendorapp/services/FirebaseService.dart';
 import 'package:vendorapp/services/notification_service.dart';
 import 'package:vendorapp/services/seeding/movie_seeding.dart';
 import 'package:vendorapp/services/supabase_client.dart';
@@ -16,15 +20,27 @@ import 'package:vendorapp/utils/permission_handler.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
-
+  
+  await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
+  FirebaseMessaging.onBackgroundMessage(FirebaseService.firebaseMessagingBackgroundHandler);
   // Initialize services concurrently without blocking the UI thread
   try {
     await Future.wait([
+      SupabaseService.init(),
       requestPermissions(),
       NotificationService.init(),
-      SupabaseService.init(),
+      FirebaseService.init(),
       MovieSeeding.seedMovies(),
     ]);
+
+    FirebaseService.getFcmToken().then((token) {
+      if (token != null) {
+        SupabaseService.addFcmToken(SupabaseService.client,token);
+      } else {
+        print("FCM token is null");
+      }
+    });
+
   } catch (e) {
     print("Error initializing services: $e");
   }

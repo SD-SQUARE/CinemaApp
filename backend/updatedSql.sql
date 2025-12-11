@@ -52,7 +52,7 @@ create table public.tickets (
   cid uuid not null,
   mid uuid not null,
   tid uuid not null,
-  create_at timestamp with time zone not null default now(),
+  created_at timestamp with time zone not null default now(),
   constraint tickets_pkey primary key (id),
   constraint tickets_cid_fkey foreign KEY (cid) references customers (id) on delete CASCADE,
   constraint tickets_mid_fkey foreign KEY (mid) references movies (id) on delete CASCADE,
@@ -60,7 +60,9 @@ create table public.tickets (
   constraint tickets_total_price_check check ((total_price > (0)::numeric))
 ) TABLESPACE pg_default;
 
-create table public.vendor_device_token (
+alter table reservations  replica identity full;
+
+create table vendor_device_token (
   id int primary key default 1,
   token text not null,
   platform text,
@@ -68,6 +70,51 @@ create table public.vendor_device_token (
 );
 
 
+ALTER TABLE tickets ENABLE ROW LEVEL SECURITY;
+
+
+create policy "allow insert"
+on tickets
+for insert
+to public
+with check (true);
+
+
+-- Allow Edge Functions to read "tickets"
+create policy "edge select tickets"
+on tickets
+for select
+to public
+using (true);
+
+-- Allow reading tokens table
+create policy "edge select vendor tokens"
+on vendor_device_token
+for select
+to public
+using (true);
+
+create or replace function notify_ticket_insert()
+returns trigger as $$
+begin
+  perform
+    net.http_post(
+      url := 'http://192.168.1.22:54321/functions/v1/ticket_confirm',
+      headers := jsonb_build_object(
+        'Content-Type','application/json',
+        'Authorization','Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZS1kZW1vIiwicm9sZSI6ImFub24iLCJleHAiOjE5ODM4MTI5OTZ9.CRXP1A7WOeoJeXxjNni43kdQwgnWNReilDMblYTn_I0'
+      ),
+      body := jsonb_build_object('ticket_id', new.id)
+    );
+
+  return new;
+end;
+$$ language plpgsql;
+
+create trigger on_ticket_insert
+after insert on tickets
+for each row
+execute function notify_ticket_insert();
 
 
 create or replace function get_tickets_summary()
