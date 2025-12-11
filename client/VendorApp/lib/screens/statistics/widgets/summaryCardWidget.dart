@@ -36,13 +36,18 @@ class SummaryCardWidget extends StatelessWidget {
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
                     Icon(icon, size: 30, color: color),
-                    const SizedBox(width: 10),
-                    Text(
-                      value,
-                      style: TextStyle(
-                        color: AppColors.textColor,
-                        fontSize: 24,
-                        fontWeight: FontWeight.bold,
+                    SizedBox(width: icon == Icons.currency_pound ? 0 : 8),
+                    Flexible(
+                      child: FittedBox(
+                        fit: BoxFit.scaleDown,
+                        child: Text(
+                          value,
+                          style: TextStyle(
+                            color: AppColors.textColor,
+                            fontSize: 24,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
                       ),
                     ),
                   ],
