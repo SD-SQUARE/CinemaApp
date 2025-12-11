@@ -1,5 +1,3 @@
-import 'dart:math';
-
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:customerapp/cubits/movieDetails/MovieDetailsState.dart';
@@ -13,9 +11,74 @@ class MovieDetailsCubit extends Cubit<MovieDetailsState> {
   RealtimeChannel? _reservationChannel;
 
   @override
-  Future<void> close() {
+  Future<void> close() async {
     _reservationChannel?.unsubscribe();
+    
+    // Clean up any selected seats when leaving the page
+    await _cleanupSelectedSeats();
+    
     return super.close();
+  }
+  
+  // Public method to clean up seats when navigating back
+  Future<void> cleanupOnNavigateBack() async {
+    await _cleanupSelectedSeats();
+  }
+  
+  // Clean up selected seats by deleting their reservations
+  // Only deletes reservations that are NOT booked (not in tickets table)
+  Future<void> _cleanupSelectedSeats() async {
+    if (state.selectedSeats.isEmpty) return;
+    
+    final timeShow = state.selectedTimeShow;
+    if (timeShow == null) return;
+    
+    try {
+      final client = SupabaseService.client;
+      final user = client.auth.currentUser;
+      
+      if (user == null) return;
+      
+      final cid = await _getOrCreateCustomerId();
+      
+      // Get all booked seats for this user and timeshow from tickets table
+      final ticketsRes = await client
+          .from('tickets')
+          .select('seats')
+          .eq('cid', cid)
+          .eq('tid', timeShow.id);
+
+      final ticketsList = ticketsRes as List;
+      final bookedSeats = <int>{};
+      for (final ticket in ticketsList) {
+        final seats = ticket['seats'] as List;
+        for (final seat in seats) {
+          bookedSeats.add(int.parse(seat as String));
+        }
+      }
+
+      // Only delete reservations for seats that are NOT booked
+      int deletedCount = 0;
+      for (final seatIndex in state.selectedSeats) {
+        if (!bookedSeats.contains(seatIndex)) {
+          print('Deleting reservation for seat $seatIndex');
+          await client
+              .from('reservations')
+              .delete()
+              .eq('cid', cid)
+              .eq('tid', timeShow.id)
+              .eq('seat', seatIndex.toString());
+          deletedCount++;
+        } else {
+          print('Keeping reservation for booked seat $seatIndex');
+        }
+      }
+      
+      print('Cleaned up $deletedCount unbooked seats (kept ${bookedSeats.length} booked)');
+    } catch (e) {
+      print('Error cleaning up selected seats: $e');
+      // Don't throw - we're closing anyway
+    }
   }
 
   Future<void> loadMovie(String movieId) async {
@@ -77,14 +140,36 @@ class MovieDetailsCubit extends Cubit<MovieDetailsState> {
   }
 
   // Fetch reserved seats for a specific timeshow
+  // This includes both temporary reservations and booked tickets
   Future<Set<int>> _loadReservedSeats(String timeShowId) async {
-    final res = await SupabaseService.client
+    final client = SupabaseService.client;
+    
+    // Load temporary reservations
+    final reservationsRes = await client
         .from('reservations')
         .select('seat')
         .eq('tid', timeShowId);
 
-    final list = res as List;
-    return list.map<int>((row) => int.parse(row['seat'] as String)).toSet();
+    final reservationsList = reservationsRes as List;
+    final reservedSeats = reservationsList
+        .map<int>((row) => int.parse(row['seat'] as String))
+        .toSet();
+
+    // Load booked tickets
+    final ticketsRes = await client
+        .from('tickets')
+        .select('seats')
+        .eq('tid', timeShowId);
+
+    final ticketsList = ticketsRes as List;
+    for (final ticket in ticketsList) {
+      final seats = ticket['seats'] as List;
+      for (final seat in seats) {
+        reservedSeats.add(int.parse(seat as String));
+      }
+    }
+
+    return reservedSeats;
   }
 
   Future<void> toggleSeat(int index) async {
@@ -96,150 +181,135 @@ class MovieDetailsCubit extends Cubit<MovieDetailsState> {
       return;
     }
 
-    // Get current user ID
-    final cid = await _getOrCreateCustomerId();
-
-    // If the seat is reserved, return (can't select it)
-    if (state.reservedSeats.contains(index)) {
+    // Check if user is authenticated
+    final user = client.auth.currentUser;
+    if (user == null) {
+      emit(
+        state.copyWith(
+          errorMessage: 'You must be logged in to select seats',
+        ),
+      );
       return;
     }
 
-    // Create a new set of selected seats based on the current selection
-    final newSet = Set<int>.from(state.selectedSeats);
+    try {
+      // Get current user ID
+      final cid = await _getOrCreateCustomerId();
 
-    if (newSet.contains(index)) {
-      // If the seat was selected, deselect it (remove from the selected set)
-      newSet.remove(index);
-
-      // Delete all reservations for this user and the current timeshow
-      await client
-          .from('reservations')
-          .delete()
-          .eq('cid', cid)
-          .eq(
-            'tid',
-            timeShow.id,
-          ); // Remove all reservations for this user and time show
-
-      // After deletion, immediately insert the updated selected seats (this triggers the INSERT event)
-      await _insertUpdatedReservations(newSet, cid, movie.id, timeShow.id);
-
-      // Insert a dummy seat (50) if no seats are selected
-      if (newSet.isEmpty) {
-        await _insertDummySeat(cid, movie.id, timeShow.id);
+      // If the seat is reserved, return (can't select it)
+      if (state.reservedSeats.contains(index)) {
+        return;
       }
 
-      // Emit the updated state with both the selected and reserved seats
-      emit(
-        state.copyWith(
-          selectedSeats: newSet,
-          reservedSeats: await _loadReservedSeats(
-            timeShow.id,
-          ), // Force a re-fetch of the reserved seats
-        ),
-      );
-    } else {
-      // If the seat was not selected, select it (add to the selected set)
-      newSet.add(index);
+      // Create a new set of selected seats based on the current selection
+      final newSet = Set<int>.from(state.selectedSeats);
 
-      // Insert the selected seat into the reservation table
-      await client.from('reservations').insert({
-        'cid': cid,
-        'mid': movie.id,
-        'tid': timeShow.id,
-        'seat': index.toString(),
-      });
+      if (newSet.contains(index)) {
+        // If the seat was selected, deselect it (remove from the selected set)
+        newSet.remove(index);
 
-      // Reload the reserved seats after the insertion to reflect the update
-      final reservedSeats = await _loadReservedSeats(timeShow.id);
-      final updatedReservedSeats = reservedSeats.difference(newSet);
+        // Delete only the specific seat being deselected
+        print('Deleting reservation: cid=$cid, tid=${timeShow.id}, seat=$index');
+        final deleteResult = await client
+            .from('reservations')
+            .delete()
+            .eq('cid', cid)
+            .eq('tid', timeShow.id)
+            .eq('seat', index.toString());
+        print('Delete result: $deleteResult');
 
-      // Emit the updated state with both the selected and reserved seats
-      emit(
-        state.copyWith(
-          selectedSeats: newSet,
-          reservedSeats: updatedReservedSeats,
-        ),
-      );
-    }
-  }
+        // Reload reserved seats to ensure consistency
+        // This is needed because Supabase real-time DELETE events might not be enabled
+        final updatedReservedSeats = await _loadReservedSeats(timeShow.id);
+        final finalReservedSeats = updatedReservedSeats.difference(newSet);
 
-  // Helper function to insert the dummy seat with seat number 50
-  Future<void> _insertDummySeat(
-    String cid,
-    String movieId,
-    String timeShowId,
-  ) async {
-    final client = SupabaseService.client;
+        // Emit the updated state with the new selected seats and reserved seats
+        emit(
+          state.copyWith(
+            selectedSeats: newSet,
+            reservedSeats: finalReservedSeats,
+          ),
+        );
+      } else {
+        // If the seat was not selected, select it (add to the selected set)
+        newSet.add(index);
 
-    var ran = Random().nextInt(1000) + 50;
-
-    // Insert the dummy seat into the reservation table
-    await client.from('reservations').insert({
-      'cid': cid,
-      'mid': movieId,
-      'tid': timeShowId,
-      'seat': ran.toString(),
-    });
-
-    // Remove the dummy seat after a short delay
-    await client
-        .from('reservations')
-        .delete()
-        .eq('seat', ran.toString())
-        .eq('cid', cid)
-        .eq('tid', timeShowId);
-  }
-
-  // Helper function to insert the updated selected seats (after deleting previous reservations)
-  Future<void> _insertUpdatedReservations(
-    Set<int> selectedSeats,
-    String cid,
-    String movieId,
-    String timeShowId,
-  ) async {
-    final client = SupabaseService.client;
-
-    // If no selected seats, emit an empty list (or handle it however you need)
-    if (selectedSeats.isEmpty) {
-      emit(state.copyWith(selectedSeats: {}));
-      return;
-    }
-
-    // Convert selected seats to a list of seat strings
-    final seatStrings = selectedSeats.map((idx) => idx.toString()).toList();
-
-    // Insert the new selected seats into the reservations table
-    await client
-        .from('reservations')
-        .insert(
-          seatStrings
-              .map(
-                (seat) => {
-                  'cid': cid,
-                  'mid': movieId,
-                  'tid': timeShowId,
-                  'seat': seat,
-                },
-              )
-              .toList(),
-        )
-        .onError((error, stackTrace) {
-          // Handle any insert errors here
+        // Insert only the newly selected seat into the reservation table
+        await client.from('reservations').insert({
+          'cid': cid,
+          'mid': movie.id,
+          'tid': timeShow.id,
+          'seat': index.toString(),
         });
 
-    // Emit the updated reserved seats after inserting
-    final reservedSeats = await _loadReservedSeats(timeShowId);
-    emit(state.copyWith(reservedSeats: reservedSeats));
+        // Emit the updated state with the new selected seats
+        // Real-time subscription will handle reserved seats updates
+        emit(
+          state.copyWith(
+            selectedSeats: newSet,
+          ),
+        );
+      }
+    } on PostgrestException catch (e) {
+      // Handle Supabase-specific errors
+      print('Database error in toggleSeat: ${e.message}');
+      
+      // Reload reserved seats to resynchronize state
+      if (timeShow != null) {
+        try {
+          final seats = await _loadReservedSeats(timeShow.id);
+          final updatedReservedSeats = seats.difference(state.selectedSeats);
+          emit(
+            state.copyWith(
+              reservedSeats: updatedReservedSeats,
+              errorMessage: 'Failed to update seat selection. Please try again.',
+            ),
+          );
+        } catch (reloadError) {
+          print('Error reloading reserved seats: $reloadError');
+          emit(
+            state.copyWith(
+              errorMessage: 'Failed to update seat selection. Please try again.',
+            ),
+          );
+        }
+      }
+    } catch (e) {
+      // Handle any other errors
+      print('Error in toggleSeat: $e');
+      
+      // Reload reserved seats to resynchronize state
+      if (timeShow != null) {
+        try {
+          final seats = await _loadReservedSeats(timeShow.id);
+          final updatedReservedSeats = seats.difference(state.selectedSeats);
+          emit(
+            state.copyWith(
+              reservedSeats: updatedReservedSeats,
+              errorMessage: 'An unexpected error occurred. Please try again.',
+            ),
+          );
+        } catch (reloadError) {
+          print('Error reloading reserved seats: $reloadError');
+          emit(
+            state.copyWith(
+              errorMessage: 'An unexpected error occurred. Please try again.',
+            ),
+          );
+        }
+      }
+    }
   }
 
   void _subscribeToReservations(String timeShowId) {
     _reservationChannel?.unsubscribe();
 
+    print('Setting up real-time subscription for timeshow: $timeShowId');
+
     _reservationChannel =
         SupabaseService.client.channel('reservations_tid_$timeShowId')
           ..onPostgresChanges(
-            event: PostgresChangeEvent.insert,
+            event: PostgresChangeEvent.all,
             schema: 'public',
             table: 'reservations',
             filter: PostgresChangeFilter(
@@ -248,31 +318,58 @@ class MovieDetailsCubit extends Cubit<MovieDetailsState> {
               value: timeShowId,
             ),
             callback: (payload) async {
+              try {
+                print("Real-time event received: ${payload.eventType} - $payload");
+                
+                final seats = await _loadReservedSeats(timeShowId);
+                print("Seats after ${payload.eventType}: $seats");
 
-              final seats = await _loadReservedSeats(timeShowId);
+                // Exclude the currently selected seats from the reservedSeats set
+                final updatedReservedSeats = seats.difference(
+                  state.selectedSeats,
+                );
 
-              // Exclude the currently selected seats from the reservedSeats set
-              final updatedReservedSeats = seats.difference(
-                state.selectedSeats,
-              );
-
-              emit(state.copyWith(reservedSeats: updatedReservedSeats));
+                print("Updated reserved seats (excluding selected): $updatedReservedSeats");
+                emit(state.copyWith(reservedSeats: updatedReservedSeats));
+              } catch (e) {
+                // Log error but continue processing subsequent events
+                print('Error processing ${payload.eventType} event in real-time subscription: $e');
+              }
             },
           )
-          ..subscribe();
+          ..subscribe((status, error) {
+            print('Subscription status: $status');
+            if (error != null) {
+              print('Subscription error: $error');
+            }
+          });
   }
 
   // Change show time selection
-  // TODO delete the seats selected for the show time switch to other show time
   Future<void> changeShowTime(TimeShow? ts) async {
     if (ts == null || ts == state.selectedTimeShow) return;
 
-    emit(state.copyWith(selectedTimeShow: ts, selectedSeats: <int>{}));
+    print('Changing showtime from ${state.selectedTimeShow?.id} to ${ts.id}');
+    print('Current selected seats: ${state.selectedSeats}');
 
+    // Clean up selected seats from the previous showtime before switching
+    await _cleanupSelectedSeats();
+
+    // Load reserved seats for the new timeslot
     final reserved = await _loadReservedSeats(ts.id);
-    _subscribeToReservations(ts.id); // Listen for changes to new timeshow
+    
+    // Subscribe to the new timeshow's real-time updates
+    _subscribeToReservations(ts.id);
 
-    emit(state.copyWith(reservedSeats: reserved));
+    // Emit the complete new state in one go to avoid race conditions
+    emit(state.copyWith(
+      selectedTimeShow: ts,
+      selectedSeats: <int>{}, // Clear selected seats
+      reservedSeats: reserved, // Set new reserved seats
+    ));
+
+    print('Changed to showtime ${ts.id}');
+    print('New reserved seats: $reserved');
   }
 
   // Get or create the customer ID for the current user
@@ -333,6 +430,7 @@ class MovieDetailsCubit extends Cubit<MovieDetailsState> {
         'total_price': totalPrice, // numeric
       });
 
+      // Keep reservations in the table - they represent booked seats
       final reservedSeats = await _loadReservedSeats(timeShow.id);
       emit(state.copyWith(reservedSeats: reservedSeats));
 

@@ -1,10 +1,41 @@
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:customerapp/cubits/movieList/movieListState.dart';
 import 'package:customerapp/services/supabase_client.dart';
 import '../../models/Movie.dart';
 
 class Movielistcubit extends Cubit<Movieliststate> {
-  Movielistcubit() : super(Movieliststate.initial());
+  Movielistcubit() : super(Movieliststate.initial()) {
+    _subscribeToMovies();
+  }
+
+  RealtimeChannel? _movieChannel;
+
+  @override
+  Future<void> close() {
+    _movieChannel?.unsubscribe();
+    return super.close();
+  }
+
+  void _subscribeToMovies() {
+    print('Setting up real-time subscription for movies');
+
+    _movieChannel = SupabaseService.client.channel('movies_realtime')
+      ..onPostgresChanges(
+        event: PostgresChangeEvent.all,
+        schema: 'public',
+        table: 'movies',
+        callback: (payload) async {
+          // Reload movies to get the latest data
+          await fetchMovies();
+        },
+      )
+      ..subscribe((status, error) {
+        if (error != null) {
+          print('Movies subscription error: $error');
+        }
+      });
+  }
 
   Future<void> fetchMovies({String? search}) async {
     final searchTerm = search ?? state.searchName;

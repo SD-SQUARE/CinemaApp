@@ -25,6 +25,9 @@ dependencies:
   html: ^0.15.6
   uuid: ^4.5.2
   intl: ^0.20.2
+  firebase_core: ^4.2.1
+  firebase_messaging: ^16.0.4
+  shared_preferences: ^2.5.3
 
 dev_dependencies:
   flutter_test:
