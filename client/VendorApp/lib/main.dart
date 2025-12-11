@@ -15,6 +15,7 @@ import 'package:vendorapp/screens/statistics/statistics.screen.dart';
 import 'package:vendorapp/services/FirebaseService.dart';
 import 'package:vendorapp/services/notification_service.dart';
 import 'package:vendorapp/services/seeding/movie_seeding.dart';
+import 'package:vendorapp/services/seeding/movie_seeding.dart';
 import 'package:vendorapp/services/supabase_client.dart';
 import 'package:vendorapp/utils/permission_handler.dart';
 

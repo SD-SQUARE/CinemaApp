@@ -5,6 +5,7 @@
 
 version:
   revision: "b45fa18946ecc2d9b4009952c636ba7e2ffbb787"
+  revision: "b45fa18946ecc2d9b4009952c636ba7e2ffbb787"
   channel: "stable"
 
 project_type: app
