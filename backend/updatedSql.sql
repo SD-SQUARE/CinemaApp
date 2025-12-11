@@ -52,6 +52,7 @@ create table public.tickets (
   cid uuid not null,
   mid uuid not null,
   tid uuid not null,
+  create_at timestamp with time zone not null default now(),
   constraint tickets_pkey primary key (id),
   constraint tickets_cid_fkey foreign KEY (cid) references customers (id) on delete CASCADE,
   constraint tickets_mid_fkey foreign KEY (mid) references movies (id) on delete CASCADE,
@@ -59,5 +60,123 @@ create table public.tickets (
   constraint tickets_total_price_check check ((total_price > (0)::numeric))
 ) TABLESPACE pg_default;
 
+create table public.vendor_device_token (
+  id int primary key default 1,
+  token text not null,
+  platform text,
+  updated_at timestamptz default now()
+);
 
 
+
+
+create or replace function get_tickets_summary()
+returns jsonb
+language plpgsql
+as $$
+declare
+  v_total_tickets int;
+  v_total_price numeric;
+  v_ticket_list jsonb;
+begin
+  -- 1. Total number of tickets
+  select count(*) into v_total_tickets from tickets;
+
+  -- 2. Total price sum
+  select coalesce(sum(total_price), 0) into v_total_price from tickets;
+
+  -- 3. Ticket list with details
+  select jsonb_agg(
+    jsonb_build_object(
+      'ticket_id', t.id,
+      'customer_name', c.name,
+      'movie_name', m.title,
+      'show_time', ts.time,
+      'price', m.price,
+      'total_price', t.total_price
+    )
+  )
+  into v_ticket_list
+  from tickets t
+  join customers c on t.cid = c.id
+  join movies m on t.mid = m.id
+  join timeshows ts on t.tid = ts.id;
+
+  -- 4. Return final JSON object
+  return jsonb_build_object(
+    'total_tickets', v_total_tickets,
+    'total_price', v_total_price,
+    'tickets', coalesce(v_ticket_list, '[]'::jsonb)
+  );
+end;
+$$;
+
+-- delete ticket function
+
+create or replace function cancel_ticket( p_ticket_id uuid )
+returns jsonb
+language plpgsql
+security definer
+as $$
+declare v_cid uuid; v_tid uuid; v_mid uuid; v_showtime timestamptz; v_seats text[]; -- Variable to hold the array of seats
+begin select cid, tid, mid, seats into v_cid, v_tid, v_mid, v_seats from tickets where id = p_ticket_id;
+
+if v_cid is null then return jsonb_build_object('ok', false, 'reason', 'ticket_not_found'); end if;
+
+if v_cid not in (select id from customers where uid = auth.uid()) then return jsonb_build_object('ok', false, 'reason', 'not_owner'); end if;
+
+select time into v_showtime from timeshows where id = v_tid;
+
+if now() >= v_showtime then return jsonb_build_object('ok', false, 'reason', 'expired'); end if;
+
+delete from reservations where cid = v_cid and mid = v_mid and tid = v_tid and seat = any(v_seats); 
+
+delete from tickets where id = p_ticket_id;
+
+return jsonb_build_object('ok', true, 'ticket_id', p_ticket_id);
+end;
+$$;
+
+
+-- statistcs Function
+
+create or replace function get_tickets_summary()
+returns jsonb
+language plpgsql
+as $$
+declare
+  v_total_tickets int;
+  v_total_price numeric;
+  v_ticket_list jsonb;
+begin
+  -- 1. Total number of tickets
+  select count(*) into v_total_tickets from tickets;
+
+  -- 2. Total price sum
+  select coalesce(sum(total_price), 0) into v_total_price from tickets;
+
+  -- 3. Ticket list with details
+  select jsonb_agg(
+    jsonb_build_object(
+      'ticket_id', t.id,
+      'customer_name', c.name,
+      'movie_name', m.title,
+      'show_time', ts.time,
+      'price', m.price,
+      'total_price', t.total_price
+    )
+  )
+  into v_ticket_list
+  from tickets t
+  join customers c on t.cid = c.id
+  join movies m on t.mid = m.id
+  join timeshows ts on t.tid = ts.id;
+
+  -- 4. Return final JSON object
+  return jsonb_build_object(
+    'total_tickets', v_total_tickets,
+    'total_price', v_total_price,
+    'tickets', coalesce(v_ticket_list, '[]'::jsonb)
+  );
+end;
+$$;
