@@ -4,7 +4,7 @@ import 'package:vendorapp/constants/AppColors.dart';
 import 'package:vendorapp/models/TicketSummery.dart';
 import 'package:vendorapp/screens/statistics/widgets/summaryCardWidget.dart';
 import 'package:vendorapp/screens/statistics/widgets/ticketStatWidget.dart';
-
+import 'package:intl/intl.dart';
 import 'package:vendorapp/cubits/statistics/statistics_cubit.dart';
 import 'package:vendorapp/cubits/statistics/statistics_state.dart';
 
@@ -43,6 +43,16 @@ class StatisticsPage extends StatelessWidget {
           if (state is StatisticsLoaded) {
             final summary = state.summary;
 
+            final currencyFormatter = NumberFormat.currency(
+              locale: 'en_US',
+              symbol: '',
+              decimalDigits: 2,
+            );
+
+            final formattedRevenue = currencyFormatter.format(
+              summary.totalPrice,
+            );
+
             return Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
@@ -61,7 +71,7 @@ class StatisticsPage extends StatelessWidget {
                       ),
                       SummaryCardWidget(
                         title: 'Total Revenue',
-                        value: summary.totalPrice.toStringAsFixed(2),
+                        value: formattedRevenue,
                         icon: Icons.currency_pound,
                         color: AppColors.accentColor,
                       ),
