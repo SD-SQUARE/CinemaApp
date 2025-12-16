@@ -15,7 +15,10 @@ class StatisticsPage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
+    return
+    BlocProvider(
+      create: (context) => StatisticsCubit()..fetchSummary(),
+      child: Scaffold(
       backgroundColor: AppColors.secondaryColor,
       appBar: AppBar(
         title: Text(
@@ -121,6 +124,7 @@ class StatisticsPage extends StatelessWidget {
           return const SizedBox.shrink();
         },
       ),
-    );
+    )
+      );
   }
 }

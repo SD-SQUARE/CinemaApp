@@ -59,12 +59,12 @@ class TicketNotificationsCubit extends Cubit<int> {
             final seatList = ticketSeats.join(", ");
 
             // Show notification
-            NotificationService.showNotification(
-              title: "New Ticket Booked! 🎬",
-              body:
-                  "Seats $seatList booked for '$movieName' at $formattedShowtime",
-              id: Random().nextInt(9999),
-            );
+            // NotificationService.showNotification(
+            //   title: "New Ticket Booked! 🎬",
+            //   body:
+            //       "Seats $seatList booked for '$movieName' at $formattedShowtime",
+            //   id: Random().nextInt(9999),
+            // );
 
             emit(state + 1);
           } catch (e) {

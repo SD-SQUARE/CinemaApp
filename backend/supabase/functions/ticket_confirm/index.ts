@@ -86,9 +86,7 @@ async function sendFCM(token: string, ticket:any, accessToken: string) {
           body: `Seats: ${ticket.seats.join(", ")} | Total: $${ticket.total_price} | Show Time: ${new Date(ticket.timeshows.time).toLocaleString()}`,
         },
         data: {
-          movie_id: ticket.mid,
-          ticket_id: ticket.id,
-          customer_id: ticket.cid,
+          movie_id: ticket.movies.id.toString(),
           navigate_to: "movie-details", // your Flutter screen route
         }
       },

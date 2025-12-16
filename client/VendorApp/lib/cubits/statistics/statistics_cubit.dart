@@ -4,7 +4,6 @@ import 'package:vendorapp/cubits/statistics/statistics_state.dart';
 
 class StatisticsCubit extends Cubit<StatisticsState> {
   StatisticsCubit() : super(StatisticsInitial()) {
-    fetchSummary();
   }
 
   Future<void> fetchSummary() async {

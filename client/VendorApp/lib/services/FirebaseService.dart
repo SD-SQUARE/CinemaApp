@@ -1,4 +1,6 @@
 import 'package:firebase_messaging/firebase_messaging.dart';
+import 'package:vendorapp/screens/movieDetails/MovieDetailsPage.dart';
+import 'package:vendorapp/main.dart';
 
 class FirebaseService {
   static Future<void> init() async {
@@ -32,4 +34,25 @@ class FirebaseService {
 
     print("🔔 Notification permission: ${settings.authorizationStatus}");
   }
+
+  void setupNotificationNavigation() {
+  FirebaseMessaging.onMessageOpenedApp.listen((RemoteMessage message) {
+    print("#FCM 🔵 Message clicked!: ${message.data.toString()}");
+    _navigateToScreen(message.data);
+  });
+  FirebaseMessaging.onMessage.listen((RemoteMessage message) {
+    print("#FCM 🟢 Foreground Message clicked!: ${message.data.toString()}");
+    _navigateToScreen(message.data);
+  });
+}
+
+void _navigateToScreen(Map<String, dynamic> data) {
+  final String? navigateTo = data['navigate_to'];
+  final String? movieId = data['movie_id'];
+
+  if (navigateTo == 'movie-details' && movieId != null) {
+    navigatorKey.currentState!.pushNamedAndRemoveUntil(MovieDetailsPage.routeName, arguments: movieId);
+  }
+}
+
 }
