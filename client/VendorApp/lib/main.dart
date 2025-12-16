@@ -19,12 +19,17 @@ import 'package:vendorapp/services/seeding/movie_seeding.dart';
 import 'package:vendorapp/services/supabase_client.dart';
 import 'package:vendorapp/utils/permission_handler.dart';
 
+final GlobalKey<NavigatorState> navigatorKey = GlobalKey<NavigatorState>();
+
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   
   await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
   FirebaseMessaging.onBackgroundMessage(FirebaseService.firebaseMessagingBackgroundHandler);
   // Initialize services concurrently without blocking the UI thread
+  FirebaseService firebaseService = FirebaseService();
+  firebaseService.setupNotificationNavigation();
+  
   try {
     await Future.wait([
       SupabaseService.init(),
@@ -62,9 +67,9 @@ class MyApp extends StatelessWidget {
           create: (context) => TicketNotificationsCubit(),
           lazy: false, // Force immediate initialization
         ),
-        BlocProvider(create: (context) => StatisticsCubit()),
       ],
       child: MaterialApp(
+        navigatorKey: navigatorKey,
         title: 'Customer App',
         debugShowCheckedModeBanner:
             false, // Turn off the debug banner for a cleaner UI

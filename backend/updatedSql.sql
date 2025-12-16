@@ -99,7 +99,7 @@ returns trigger as $$
 begin
   perform
     net.http_post(
-      url := 'http://192.168.1.22:54321/functions/v1/ticket_confirm',
+      url := 'http://192.168.1.10:54321/functions/v1/ticket_confirm',
       headers := jsonb_build_object(
         'Content-Type','application/json',
         'Authorization','Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZS1kZW1vIiwicm9sZSI6ImFub24iLCJleHAiOjE5ODM4MTI5OTZ9.CRXP1A7WOeoJeXxjNni43kdQwgnWNReilDMblYTn_I0'
