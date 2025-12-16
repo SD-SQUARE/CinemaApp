@@ -2,6 +2,7 @@ import 'package:vendorapp/models/TicketSummery.dart';
 import 'package:vendorapp/services/supabase_client.dart';
 
 Future<TicketSummary> fetchTicketSummary() async {
+  print('#Stat Fetching ticket summary from Supabase...');
   try {
     final response = await SupabaseService.client.rpc(
       'get_tickets_summary',

@@ -51,7 +51,7 @@ void _navigateToScreen(Map<String, dynamic> data) {
   final String? movieId = data['movie_id'];
 
   if (navigateTo == 'movie-details' && movieId != null) {
-    navigatorKey.currentState!.pushNamedAndRemoveUntil(MovieDetailsPage.routeName, arguments: movieId);
+    navigatorKey.currentState!.pushNamedAndRemoveUntil(MovieDetailsPage.routeName, (route) => false, arguments: movieId);
   }
 }
 
